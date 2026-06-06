@@ -1,0 +1,35 @@
+{
+  "$schema": "https://developer.microsoft.com/json-schemas/teams/v1.23/MicrosoftTeams.schema.json",
+  "manifestVersion": "1.23",
+  "version": "0.1.0",
+  "id": "a4f6328f-7ec6-4a8f-aa23-8c371f4d8748",
+  "developer": {
+    "name": "RepAI Hackathon Team",
+    "websiteUrl": "https://contoso.example",
+    "privacyUrl": "https://contoso.example/privacy",
+    "termsOfUseUrl": "https://contoso.example/terms"
+  },
+  "name": {
+    "short": "RepAI Call",
+    "full": "RepAI Real Teams Call MVP"
+  },
+  "description": {
+    "short": "A Teams calling bot shell for the RepAI demo call.",
+    "full": "RepAI Call is the real Teams-call surface for the hackathon MVP. It uses synthetic demo context, then joins a Teams call as RepAI, Jeremiah's disclosed delegate, once Azure Bot, Graph calling permissions, and the public webhook endpoint are configured."
+  },
+  "icons": {
+    "color": "color.png",
+    "outline": "outline.png"
+  },
+  "accentColor": "#1769D3",
+  "bots": [
+    {
+      "botId": "78e73fa6-8e61-416d-8419-1d6a536b4030",
+      "scopes": ["personal", "team", "groupChat"],
+      "supportsCalling": true,
+      "supportsVideo": false,
+      "isNotificationOnly": false
+    }
+  ],
+  "validDomains": ["token.botframework.com"]
+}

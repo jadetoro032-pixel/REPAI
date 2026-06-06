@@ -1,0 +1,33 @@
+{
+  "$schema": "https://developer.microsoft.com/json-schemas/teams/v1.23/MicrosoftTeams.schema.json",
+  "manifestVersion": "1.23",
+  "version": "0.1.3",
+  "id": "17570b31-f89a-4ecf-b061-b5efdaa7665e",
+  "developer": {
+    "name": "RepAI Hackathon Team",
+    "websiteUrl": "https://contoso.example",
+    "privacyUrl": "https://contoso.example/privacy",
+    "termsOfUseUrl": "https://contoso.example/terms"
+  },
+  "name": {
+    "short": "RepAI Lite",
+    "full": "RepAI Meeting Delegate Lite"
+  },
+  "description": {
+    "short": "A consent-based meeting delegate for Microsoft 365 Copilot.",
+    "full": "RepAI Lite is the live Copilot shell for RepAI Meeting Delegate. Judges can test the delegate story, guardrails, and live-vs-planned roadmap directly in Copilot."
+  },
+  "icons": {
+    "color": "color.png",
+    "outline": "outline.png"
+  },
+  "accentColor": "#1769D3",
+  "copilotAgents": {
+    "declarativeAgents": [
+      {
+        "id": "repai-lite-meeting-delegate",
+        "file": "declarativeAgent.json"
+      }
+    ]
+  }
+}

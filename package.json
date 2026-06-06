@@ -1,0 +1,33 @@
+{
+  "name": "repai-meeting-delegate",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "start": "tsx src/server/teamsCallServer.ts",
+    "test": "vitest run",
+    "build": "tsc --noEmit",
+    "demo": "tsx src/demo/runDemo.ts",
+    "demo:card": "tsx src/demo/exportTeamsCard.ts",
+    "call:server": "tsx src/server/teamsCallServer.ts",
+    "dev": "node node_modules/vite/bin/vite.js --host 127.0.0.1 --port 5177",
+    "build:web": "node node_modules/vite/bin/vite.js build",
+    "preview": "node node_modules/vite/bin/vite.js preview --host 127.0.0.1 --port 5182",
+    "demo:web": "node node_modules/vite/bin/vite.js build && node node_modules/vite/bin/vite.js preview --host 127.0.0.1 --port 5182"
+  },
+  "dependencies": {
+    "@vitejs/plugin-react": "^4.3.4",
+    "vite": "^6.0.7",
+    "react": "^18.3.1",
+    "react-dom": "^18.3.1",
+    "lucide-react": "^0.468.0",
+    "tsx": "^4.16.2"
+  },
+  "devDependencies": {
+    "@types/node": "^20.14.10",
+    "@types/react": "^18.3.17",
+    "@types/react-dom": "^18.3.5",
+    "typescript": "^5.5.3",
+    "vitest": "^4.1.8"
+  }
+}

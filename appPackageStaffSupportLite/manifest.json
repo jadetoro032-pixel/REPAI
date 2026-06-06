@@ -1,0 +1,33 @@
+{
+  "$schema": "https://developer.microsoft.com/json-schemas/teams/v1.23/MicrosoftTeams.schema.json",
+  "manifestVersion": "1.23",
+  "version": "0.1.2",
+  "id": "b94ff13a-779a-4a8a-aa96-e3d1c4518652",
+  "developer": {
+    "name": "RepAI Hackathon Team",
+    "websiteUrl": "https://contoso.example",
+    "privacyUrl": "https://contoso.example/privacy",
+    "termsOfUseUrl": "https://contoso.example/terms"
+  },
+  "name": {
+    "short": "RepAI Staff",
+    "full": "RepAI Staff Support Lite"
+  },
+  "description": {
+    "short": "A risk-gated Staff Support agent for Microsoft 365 Copilot.",
+    "full": "RepAI Staff Support receives assigned work, classifies risk, drafts safe responses, and escalates decisions. Judges can test the Staff Support role and compare it with Meeting Delegate directly in Copilot."
+  },
+  "icons": {
+    "color": "color.png",
+    "outline": "outline.png"
+  },
+  "accentColor": "#1769D3",
+  "copilotAgents": {
+    "declarativeAgents": [
+      {
+        "id": "repai-staff-support-lite",
+        "file": "declarativeAgent.json"
+      }
+    ]
+  }
+}
