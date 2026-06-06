@@ -2,6 +2,8 @@
 
 RepAI is a consent-based Microsoft 365 meeting delegate prototype. It represents Jeremiah's working context without impersonating him: it clearly announces that it is attending as his delegate, answers only from approved knowledge, refuses unsupported answers, and sends Jeremiah a post-meeting brief.
 
+RepAI is built by Jeremiah Adetoro for the Microsoft 365 Enterprise Agents hackathon.
+
 RepAI is now framed as a **hybrid enterprise representative**:
 
 - **Microsoft 365 Copilot work brain:** meetings, Teams, Outlook, SharePoint, OneDrive, Work IQ, tenant knowledge, and Copilot connectors.
