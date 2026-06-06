@@ -4,7 +4,9 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "start": "tsx src/server/teamsCallServer.ts",
+    "start": "node server-dist/server/teamsCallServer.js",
+    "build:server": "tsc -p tsconfig.server.json",
+    "postinstall": "npm run build:server",
     "test": "vitest run",
     "build": "tsc --noEmit",
     "demo": "tsx src/demo/runDemo.ts",
