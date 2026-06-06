@@ -1,7 +1,7 @@
 {
   "$schema": "https://developer.microsoft.com/json-schemas/teams/v1.23/MicrosoftTeams.schema.json",
   "manifestVersion": "1.23",
-  "version": "0.1.1",
+  "version": "0.1.2",
   "id": "fb2e524f-234d-4fca-a6b5-a7bc85b71100",
   "developer": {
     "name": "Jeremiah Adetoro",

@@ -1,0 +1,46 @@
+{
+  "$schema": "https://developer.microsoft.com/json-schemas/teams/v1.23/MicrosoftTeams.schema.json",
+  "manifestVersion": "1.23",
+  "version": "0.2.1",
+  "id": "6bb6f3b4-7118-4fd1-9017-b9bbbe0937f2",
+  "developer": {
+    "name": "Jeremiah Adetoro",
+    "websiteUrl": "https://contoso.example",
+    "privacyUrl": "https://contoso.example/privacy",
+    "termsOfUseUrl": "https://contoso.example/terms"
+  },
+  "name": {
+    "short": "RepAI",
+    "full": "RepAI Meeting Delegate and Teams Call MVP"
+  },
+  "description": {
+    "short": "A Copilot delegate agent with a Teams call component.",
+    "full": "RepAI is built by Jeremiah Adetoro for the Microsoft 365 Enterprise Agents hackathon. It installs one app with a Copilot delegate agent and a Teams calling component: RepAI Lite controls the synthetic demo connection and delegate workflow, while RepAI Call connects Teams calling events to the live Azure backend."
+  },
+  "icons": {
+    "color": "color.png",
+    "outline": "outline.png"
+  },
+  "accentColor": "#1769D3",
+  "bots": [
+    {
+      "botId": "78e73fa6-8e61-416d-8419-1d6a536b4030",
+      "scopes": ["personal", "team", "groupChat"],
+      "supportsCalling": true,
+      "supportsVideo": false,
+      "isNotificationOnly": false
+    }
+  ],
+  "copilotAgents": {
+    "declarativeAgents": [
+      {
+        "id": "repai-lite-meeting-delegate",
+        "file": "declarativeAgent.json"
+      }
+    ]
+  },
+  "validDomains": [
+    "token.botframework.com",
+    "repai-frhzehe2cpe2b2en.francecentral-01.azurewebsites.net"
+  ]
+}
