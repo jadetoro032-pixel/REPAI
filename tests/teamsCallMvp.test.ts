@@ -69,6 +69,7 @@ describe("RepAI real Teams call MVP scaffold", () => {
     const gitignore = readFileSync(".gitignore", "utf8");
 
     expect(serverSource).toContain("/api/calling");
+    expect(serverSource).toContain("/api/messages");
     expect(serverSource).toContain("Missing Teams calling authorization bearer token");
     expect(envExample).toContain("YOUR_BOT_CLIENT_SECRET_VALUE");
     expect(gitignore).toContain(".env");

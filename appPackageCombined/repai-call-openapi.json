@@ -1,0 +1,114 @@
+{
+  "openapi": "3.0.3",
+  "info": {
+    "title": "RepAI Call API",
+    "version": "0.2.2",
+    "description": "Starts the RepAI real Teams-call demo path."
+  },
+  "servers": [
+    {
+      "url": "https://repai-frhzehe2cpe2b2en.francecentral-01.azurewebsites.net"
+    }
+  ],
+  "paths": {
+    "/start-demo-call": {
+      "post": {
+        "operationId": "startDemoCall",
+        "summary": "Start RepAI Teams-call demo",
+        "description": "Attempts to start the RepAI Teams-call demo by asking the Azure backend to join the configured Teams meeting through Microsoft Graph.",
+        "x-oai-isConsequential": true,
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/StartDemoCallRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "RepAI sent the Teams join request.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/StartDemoCallResponse"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Microsoft Graph refused the call request because permissions or consent are missing."
+          },
+          "428": {
+            "description": "RepAI backend setup is incomplete."
+          }
+        }
+      }
+    }
+  },
+  "components": {
+    "schemas": {
+      "StartDemoCallRequest": {
+        "type": "object",
+        "properties": {
+          "userJoins": {
+            "type": "boolean",
+            "description": "Whether Jeremiah or the judge will also join the call.",
+            "default": true
+          },
+          "recommendationPreference": {
+            "type": "string",
+            "description": "Whose recommendation to include in the call opening.",
+            "enum": ["repai", "user"],
+            "default": "repai"
+          },
+          "userRecommendation": {
+            "type": "string",
+            "description": "Optional recommendation supplied by Jeremiah."
+          }
+        }
+      },
+      "StartDemoCallResponse": {
+        "type": "object",
+        "properties": {
+          "mode": {
+            "type": "string",
+            "description": "Actual call state returned by RepAI backend.",
+            "enum": ["setup_required", "ready", "join_started", "join_failed"]
+          },
+          "message": {
+            "type": "string"
+          },
+          "nextAction": {
+            "type": "string"
+          },
+          "brief": {
+            "type": "string"
+          },
+          "graphCall": {
+            "type": "object",
+            "properties": {
+              "ok": {
+                "type": "boolean"
+              },
+              "status": {
+                "type": "integer"
+              },
+              "callId": {
+                "type": "string"
+              },
+              "state": {
+                "type": "string"
+              },
+              "message": {
+                "type": "string"
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+}

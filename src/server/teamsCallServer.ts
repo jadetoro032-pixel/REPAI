@@ -2,6 +2,8 @@ import { createServer, type IncomingMessage, type ServerResponse } from "node:ht
 import { existsSync, readFileSync } from "node:fs";
 import { join } from "node:path";
 import { startDemoCall, type StartDemoCallRequest, type TeamsCallMvpEnv } from "../integrations/teamsCallMvp.js";
+import { createTeamsMeetingCall, playOpeningPrompt } from "../integrations/graphTeamsCall.js";
+import { buildTeamsBotResponse, sendTeamsBotReply, type TeamsBotActivity } from "../integrations/teamsBotMessaging.js";
 
 function loadLocalEnvFile() {
   const envPath = join(process.cwd(), ".env");
@@ -65,6 +67,23 @@ function sendNoContent(response: ServerResponse) {
   response.end();
 }
 
+function sendText(response: ServerResponse, status: number, body: string, contentType = "text/plain; charset=utf-8") {
+  response.writeHead(status, {
+    "content-type": contentType,
+    "access-control-allow-origin": "*",
+  });
+  response.end(body);
+}
+
+function sendBinary(response: ServerResponse, status: number, body: Buffer, contentType: string) {
+  response.writeHead(status, {
+    "content-type": contentType,
+    "access-control-allow-origin": "*",
+    "cache-control": "no-store",
+  });
+  response.end(body);
+}
+
 async function readJsonBody(request: IncomingMessage) {
   const chunks: Buffer[] = [];
 
@@ -93,6 +112,44 @@ const server = createServer(async (request, response) => {
       return;
     }
 
+    if (url.pathname === "/repai-call-openapi.json" && request.method === "GET") {
+      sendText(
+        response,
+        200,
+        readFileSync(join(process.cwd(), "appPackageCombined", "repai-call-openapi.json"), "utf8"),
+        "application/json; charset=utf-8",
+      );
+      return;
+    }
+
+    if (url.pathname === "/media/opening.wav" && request.method === "GET") {
+      const env = readEnv();
+
+      if (!env.REPAI_SPEECH_KEY || !env.REPAI_SPEECH_REGION) {
+        sendText(response, 503, "Azure Speech is not configured for RepAI opening audio.");
+        return;
+      }
+
+      const speechResponse = await fetch(`https://${env.REPAI_SPEECH_REGION}.tts.speech.microsoft.com/cognitiveservices/v1`, {
+        method: "POST",
+        headers: {
+          "content-type": "application/ssml+xml",
+          "ocp-apim-subscription-key": env.REPAI_SPEECH_KEY,
+          "x-microsoft-outputformat": "riff-16khz-16bit-mono-pcm",
+          "user-agent": "repai-teams-call-mvp",
+        },
+        body: buildOpeningSsml(),
+      });
+
+      if (!speechResponse.ok) {
+        sendText(response, speechResponse.status, "Azure Speech could not synthesize the RepAI opening audio.");
+        return;
+      }
+
+      sendBinary(response, 200, Buffer.from(await speechResponse.arrayBuffer()), "audio/wav");
+      return;
+    }
+
     if (url.pathname === "/api/calling" && request.method === "POST") {
       const authorization = request.headers.authorization;
 
@@ -111,30 +168,91 @@ const server = createServer(async (request, response) => {
         return;
       }
 
+      const promptResult = await maybePlayOpeningPrompt(body, readEnv());
+
       sendJson(response, 202, {
         accepted: true,
         service: "repai-teams-call-mvp",
-        message: "Teams calling notification received. Media join/speak handling is the next implementation layer.",
+        message: promptResult?.ok
+          ? "Teams calling notification received. RepAI sent the opening prompt."
+          : "Teams calling notification received.",
+        ...(promptResult ? { promptResult } : {}),
+      });
+      return;
+    }
+
+    if (url.pathname === "/api/messages" && request.method === "POST") {
+      const authorization = request.headers.authorization;
+
+      if (!authorization?.toLowerCase().startsWith("bearer ")) {
+        sendJson(response, 401, {
+          error: "Missing Bot Framework authorization bearer token",
+          nextAction: "Use this route as the Azure Bot messaging endpoint.",
+        });
+        return;
+      }
+
+      const body = (await readJsonBody(request)) as TeamsBotActivity;
+
+      if (body.type !== "message") {
+        sendJson(response, 202, { accepted: true, service: "repai-teams-message-mvp" });
+        return;
+      }
+
+      const env = readEnv();
+      const text = body.text ?? "";
+      const wantsCall = text.toLowerCase().includes("start") && text.toLowerCase().includes("call");
+      const replyText = wantsCall ? await buildStartCallChatReply(env) : buildTeamsBotResponse(text);
+      const replyResult = await sendTeamsBotReply(body, replyText, env);
+
+      sendJson(response, replyResult.ok ? 202 : replyResult.status, {
+        accepted: replyResult.ok,
+        service: "repai-teams-message-mvp",
+        replyResult,
       });
       return;
     }
 
     if (url.pathname === "/start-demo-call" && request.method === "POST") {
       const body = (await readJsonBody(request)) as Partial<StartDemoCallRequest>;
+      const env = readEnv();
       const result = startDemoCall(
         {
           userJoins: Boolean(body.userJoins),
           recommendationPreference: body.recommendationPreference ?? "repai",
           userRecommendation: body.userRecommendation,
         },
-        readEnv(),
+        env,
       );
 
-      sendJson(response, result.mode === "ready" ? 200 : 428, result);
+      if (result.mode !== "ready") {
+        sendJson(response, 428, result);
+        return;
+      }
+
+      const graphCall = await createTeamsMeetingCall(env, {
+        mediaUrl: `${(env.REPAI_PUBLIC_BASE_URL ?? "").replace(/\/$/, "")}/media/opening.wav`,
+        mediaResourceId: "repai-opening",
+      });
+
+      sendJson(response, graphCall.ok ? 200 : graphCall.status, {
+        ...result,
+        mode: graphCall.ok ? "join_started" : "join_failed",
+        message: graphCall.ok
+          ? "RepAI sent the Teams join request through Microsoft Graph."
+          : "RepAI tried to join the Teams meeting, but Microsoft Graph returned a setup or permission error.",
+        nextAction: graphCall.ok
+          ? "Open the Teams meeting and wait for RepAI to appear while the call establishes."
+          : "Fix the Graph/Teams calling permission shown in graphCall.message, then retry Start Teams call.",
+        graphCall,
+      });
       return;
     }
 
-    sendJson(response, 404, { error: "Not found", routes: ["GET /health", "POST /start-demo-call", "POST /api/calling"] });
+    sendJson(response, 404, {
+      error: "Not found",
+      routes: ["GET /health", "GET /repai-call-openapi.json", "GET /media/opening.wav", "POST /start-demo-call", "POST /api/calling", "POST /api/messages"],
+    });
   } catch (error) {
     sendJson(response, 500, { error: error instanceof Error ? error.message : "Unknown server error" });
   }
@@ -145,3 +263,77 @@ const host = process.env.REPAI_CALL_SERVER_HOST ?? "0.0.0.0";
 server.listen(port, host, () => {
   console.log(`RepAI Teams call MVP server listening on ${host}:${port}`);
 });
+
+function buildOpeningSsml() {
+  return [
+    '<speak version="1.0" xml:lang="en-US">',
+    '<voice xml:lang="en-US" xml:gender="Female" name="en-US-JennyNeural">',
+    "Hello everyone. I am RepAI, attending as Jeremiah's disclosed delegate. RepAI helps people show up to meetings, answer from approved context, refuse risky commitments, and send clear briefs afterward. For this hackathon demo I am using synthetic context, but the production path connects to Microsoft 365, Azure AI Foundry, and Azure Speech.",
+    "</voice>",
+    "</speak>",
+  ].join("");
+}
+
+async function maybePlayOpeningPrompt(body: Record<string, unknown>, env: TeamsCallMvpEnv) {
+  const values = Array.isArray(body.value) ? body.value : [];
+  const baseUrl = (env.REPAI_PUBLIC_BASE_URL ?? "").replace(/\/$/, "");
+
+  for (const item of values) {
+    if (typeof item !== "object" || item === null) {
+      continue;
+    }
+
+    const resourceData = (item as { resourceData?: unknown }).resourceData;
+    if (typeof resourceData !== "object" || resourceData === null) {
+      continue;
+    }
+
+    const call = resourceData as { id?: unknown; state?: unknown; "@odata.type"?: unknown };
+    if (typeof call.id === "string" && call.state === "established") {
+      return playOpeningPrompt(call.id, env, `${baseUrl}/media/opening.wav`);
+    }
+  }
+
+  return undefined;
+}
+
+async function buildStartCallChatReply(env: TeamsCallMvpEnv) {
+  const result = startDemoCall(
+    {
+      userJoins: true,
+      recommendationPreference: "repai",
+    },
+    env,
+  );
+
+  if (result.mode !== "ready") {
+    return [
+      "I tried to start the Teams call, but setup is not complete.",
+      "",
+      `Missing: ${result.setup.missing.map((requirement) => requirement.label).join(", ")}`,
+      "",
+      "Once these are configured, send `Start Teams call` again.",
+    ].join("\n");
+  }
+
+  const graphCall = await createTeamsMeetingCall(env, {
+    mediaUrl: `${(env.REPAI_PUBLIC_BASE_URL ?? "").replace(/\/$/, "")}/media/opening.wav`,
+    mediaResourceId: "repai-opening",
+  });
+
+  if (!graphCall.ok) {
+    return [
+      "I tried to join the Teams meeting as Jeremiah's disclosed delegate, but Microsoft returned an error.",
+      "",
+      graphCall.message,
+      "",
+      "Fix that permission/setup issue, then send `Start Teams call` again.",
+    ].join("\n");
+  }
+
+  return [
+    "RepAI sent the Teams join request through Microsoft Graph.",
+    "",
+    "Open the configured Teams meeting now. RepAI should appear while the call establishes, then speak the opening as Jeremiah's disclosed delegate.",
+  ].join("\n");
+}

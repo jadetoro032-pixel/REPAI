@@ -1,7 +1,7 @@
 {
   "$schema": "https://developer.microsoft.com/json-schemas/teams/v1.23/MicrosoftTeams.schema.json",
   "manifestVersion": "1.23",
-  "version": "0.2.1",
+  "version": "0.2.2",
   "id": "6bb6f3b4-7118-4fd1-9017-b9bbbe0937f2",
   "developer": {
     "name": "Jeremiah Adetoro",
@@ -15,7 +15,7 @@
   },
   "description": {
     "short": "A Copilot delegate agent with a Teams call component.",
-    "full": "RepAI is built by Jeremiah Adetoro for the Microsoft 365 Enterprise Agents hackathon. It installs one app with a Copilot delegate agent and a Teams calling component: RepAI Lite controls the synthetic demo connection and delegate workflow, while RepAI Call connects Teams calling events to the live Azure backend."
+    "full": "RepAI is built by Jeremiah Adetoro for the Microsoft 365 Enterprise Agents hackathon. It installs one app with a Copilot delegate agent and a Teams calling component: RepAI Lite controls the synthetic demo connection and delegate workflow, while RepAI Call connects Copilot actions and Teams calling events to the live Azure backend."
   },
   "icons": {
     "color": "color.png",
@@ -28,7 +28,26 @@
       "scopes": ["personal", "team", "groupChat"],
       "supportsCalling": true,
       "supportsVideo": false,
-      "isNotificationOnly": false
+      "isNotificationOnly": false,
+      "commandLists": [
+        {
+          "scopes": ["personal", "team", "groupChat"],
+          "commands": [
+            {
+              "title": "Use demo connection",
+              "description": "Load RepAI's synthetic hackathon work context."
+            },
+            {
+              "title": "Start Teams call",
+              "description": "Ask RepAI to join the configured Teams meeting as Jeremiah's disclosed delegate."
+            },
+            {
+              "title": "Send call brief",
+              "description": "Generate the short post-call brief."
+            }
+          ]
+        }
+      ]
     }
   ],
   "copilotAgents": {

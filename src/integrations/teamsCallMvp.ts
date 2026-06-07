@@ -40,13 +40,20 @@ export interface StartDemoCallRequest {
 }
 
 export interface StartDemoCallResult {
-  mode: "setup_required" | "ready";
+  mode: "setup_required" | "ready" | "join_started" | "join_failed";
   message: string;
   nextAction: string;
   context: DemoConnectionContext;
   setup: SetupStatus;
   callScript: string[];
   brief: string;
+  graphCall?: {
+    ok: boolean;
+    status: number;
+    callId?: string;
+    state?: string;
+    message: string;
+  };
 }
 
 export const teamsCallRequirements: SetupRequirement[] = [

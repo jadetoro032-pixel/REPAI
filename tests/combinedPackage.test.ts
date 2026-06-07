@@ -14,6 +14,11 @@ describe("RepAI combined package", () => {
       supportsCalling: true,
       supportsVideo: false,
     });
+    expect(manifest.bots[0].commandLists[0].commands.map((command: { title: string }) => command.title)).toEqual([
+      "Use demo connection",
+      "Start Teams call",
+      "Send call brief",
+    ]);
     expect(manifest.copilotAgents.declarativeAgents).toEqual([
       {
         id: "repai-lite-meeting-delegate",
