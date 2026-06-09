@@ -1,0 +1,36 @@
+{
+  "$schema": "https://developer.microsoft.com/json-schemas/teams/v1.23/MicrosoftTeams.schema.json",
+  "manifestVersion": "1.23",
+  "version": "0.1.0",
+  "id": "8ca14a21-8e03-44c7-9f8d-6bf39084fb9d",
+  "developer": {
+    "name": "Jeremiah Adetoro",
+    "websiteUrl": "https://repai-frhzehe2cpe2b2en.francecentral-01.azurewebsites.net",
+    "privacyUrl": "https://repai-frhzehe2cpe2b2en.francecentral-01.azurewebsites.net/health",
+    "termsOfUseUrl": "https://repai-frhzehe2cpe2b2en.francecentral-01.azurewebsites.net/health"
+  },
+  "name": {
+    "short": "RepAI Copilot",
+    "full": "RepAI Copilot Delegate"
+  },
+  "description": {
+    "short": "A Copilot delegate agent for the RepAI demo.",
+    "full": "RepAI Copilot is the Microsoft 365 Copilot-facing delegate agent for the RepAI demo. It uses synthetic demo context, safe delegation rules, and a backend action to start the real Teams-call path."
+  },
+  "icons": {
+    "color": "color.png",
+    "outline": "outline.png"
+  },
+  "accentColor": "#1769D3",
+  "copilotAgents": {
+    "declarativeAgents": [
+      {
+        "id": "repai-lite-meeting-delegate",
+        "file": "declarativeAgent.json"
+      }
+    ]
+  },
+  "validDomains": [
+    "repai-frhzehe2cpe2b2en.francecentral-01.azurewebsites.net"
+  ]
+}

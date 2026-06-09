@@ -303,6 +303,9 @@ const server = createServer(async (request, response) => {
       appendToConversationHistory(conversationId, text, replyPayload.text);
 
       const replyResult = await sendTeamsBotReply(body, replyPayload.text, env, fetch, replyPayload.adaptiveCard);
+      console.log(
+        `[RepAI Messages] conversation=${conversationId} reply=${replyResult.ok ? "ok" : "failed"} status=${replyResult.status} message=${replyResult.message}`,
+      );
 
       sendJson(response, replyResult.ok ? 202 : replyResult.status, {
         accepted: replyResult.ok,

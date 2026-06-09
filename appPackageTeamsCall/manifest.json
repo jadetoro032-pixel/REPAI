@@ -1,13 +1,13 @@
 {
   "$schema": "https://developer.microsoft.com/json-schemas/teams/v1.23/MicrosoftTeams.schema.json",
   "manifestVersion": "1.23",
-  "version": "0.1.3",
+  "version": "0.1.4",
   "id": "a4f6328f-7ec6-4a8f-aa23-8c371f4d8748",
   "developer": {
     "name": "Jeremiah Adetoro",
-    "websiteUrl": "https://contoso.example",
-    "privacyUrl": "https://contoso.example/privacy",
-    "termsOfUseUrl": "https://contoso.example/terms"
+    "websiteUrl": "https://repai-frhzehe2cpe2b2en.francecentral-01.azurewebsites.net",
+    "privacyUrl": "https://repai-frhzehe2cpe2b2en.francecentral-01.azurewebsites.net/health",
+    "termsOfUseUrl": "https://repai-frhzehe2cpe2b2en.francecentral-01.azurewebsites.net/health"
   },
   "name": {
     "short": "RepAI Call",
@@ -31,5 +31,8 @@
       "isNotificationOnly": false
     }
   ],
-  "validDomains": ["token.botframework.com"]
+  "validDomains": [
+    "token.botframework.com",
+    "repai-frhzehe2cpe2b2en.francecentral-01.azurewebsites.net"
+  ]
 }
