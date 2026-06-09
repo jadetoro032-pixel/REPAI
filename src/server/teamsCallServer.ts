@@ -1,9 +1,36 @@
 import { createServer, type IncomingMessage, type ServerResponse } from "node:http";
 import { existsSync, readFileSync } from "node:fs";
 import { join } from "node:path";
-import { startDemoCall, type StartDemoCallRequest, type TeamsCallMvpEnv } from "../integrations/teamsCallMvp.js";
+import { getTeamsCallSetupStatus, startDemoCall, type StartDemoCallRequest, type TeamsCallMvpEnv } from "../integrations/teamsCallMvp.js";
 import { createTeamsMeetingCall, playOpeningPrompt } from "../integrations/graphTeamsCall.js";
 import { buildTeamsBotResponse, sendTeamsBotReply, type TeamsBotActivity } from "../integrations/teamsBotMessaging.js";
+import type { FoundryMessage } from "../integrations/foundryClient.js";
+import { createCallStateTracker } from "./callStateTracker.js";
+import { buildDeepStatus } from "./deepStatus.js";
+
+// Conversation memory: stores the last N messages per Teams conversation for Foundry context
+const MAX_HISTORY_TURNS = 10;
+const conversationMemory = new Map<string, FoundryMessage[]>();
+const callStateTracker = createCallStateTracker();
+
+function getConversationHistory(conversationId: string): FoundryMessage[] {
+  return conversationMemory.get(conversationId) ?? [];
+}
+
+function appendToConversationHistory(conversationId: string, userText: string, assistantReply: string): void {
+  const history = conversationMemory.get(conversationId) ?? [];
+  history.push({ role: "user", content: userText });
+  history.push({ role: "assistant", content: assistantReply });
+  // Keep only the last N turns (N * 2 messages)
+  while (history.length > MAX_HISTORY_TURNS * 2) {
+    history.shift();
+  }
+  conversationMemory.set(conversationId, history);
+}
+
+function clearConversationHistory(conversationId: string): void {
+  conversationMemory.delete(conversationId);
+}
 
 function loadLocalEnvFile() {
   const envPath = join(process.cwd(), ".env");
@@ -43,6 +70,8 @@ function readEnv(): TeamsCallMvpEnv {
     REPAI_DEMO_MEETING_URL: process.env.REPAI_DEMO_MEETING_URL,
     REPAI_FOUNDRY_ENDPOINT: process.env.REPAI_FOUNDRY_ENDPOINT,
     REPAI_FOUNDRY_API_KEY: process.env.REPAI_FOUNDRY_API_KEY,
+    REPAI_FOUNDRY_DEPLOYMENT: process.env.REPAI_FOUNDRY_DEPLOYMENT,
+    REPAI_FOUNDRY_API_VERSION: process.env.REPAI_FOUNDRY_API_VERSION,
     REPAI_SPEECH_KEY: process.env.REPAI_SPEECH_KEY,
     REPAI_SPEECH_REGION: process.env.REPAI_SPEECH_REGION,
   };
@@ -53,7 +82,7 @@ function sendJson(response: ServerResponse, status: number, body: unknown) {
     "content-type": "application/json; charset=utf-8",
     "access-control-allow-origin": "*",
     "access-control-allow-methods": "GET,POST,OPTIONS",
-    "access-control-allow-headers": "content-type",
+    "access-control-allow-headers": "authorization,content-type",
   });
   response.end(JSON.stringify(body, null, 2));
 }
@@ -102,6 +131,8 @@ const server = createServer(async (request, response) => {
   try {
     const url = new URL(request.url ?? "/", "http://127.0.0.1");
 
+    console.log(`[RepAI] ${request.method} ${url.pathname}`);
+
     if (request.method === "OPTIONS") {
       sendJson(response, 204, {});
       return;
@@ -109,6 +140,50 @@ const server = createServer(async (request, response) => {
 
     if (url.pathname === "/health" && request.method === "GET") {
       sendJson(response, 200, { ok: true, service: "repai-teams-call-mvp" });
+      return;
+    }
+
+    if (url.pathname === "/api/status" && request.method === "GET") {
+      const env = readEnv();
+      const setup = getTeamsCallSetupStatus(env);
+      const configured = setup.configured.map((requirement) => requirement.label);
+      const missing = setup.missing.map((requirement) => ({
+        label: requirement.label,
+        purpose: requirement.purpose,
+        requiredFor: requirement.requiredFor,
+      }));
+
+      sendJson(response, 200, {
+        service: "repai-teams-call-mvp",
+        version: "0.3.0",
+        readyForRealTeamsCall: setup.readyForRealTeamsCall,
+        configured,
+        missing,
+        endpoints: {
+          health: "/health",
+          status: "/api/status",
+          statusDeep: "/api/status/deep",
+          calls: "/api/calls",
+          messages: "/api/messages",
+          calling: "/api/calling",
+          startDemoCall: "/start-demo-call",
+          openapi: "/repai-call-openapi.json",
+          openingAudio: "/media/opening.wav",
+        },
+      });
+      return;
+    }
+
+    if (url.pathname === "/api/status/deep" && request.method === "GET") {
+      sendJson(response, 200, await buildDeepStatus(readEnv()));
+      return;
+    }
+
+    if (url.pathname === "/api/calls" && request.method === "GET") {
+      sendJson(response, 200, {
+        service: "repai-teams-call-mvp",
+        calls: callStateTracker.list(),
+      });
       return;
     }
 
@@ -138,6 +213,7 @@ const server = createServer(async (request, response) => {
           "x-microsoft-outputformat": "riff-16khz-16bit-mono-pcm",
           "user-agent": "repai-teams-call-mvp",
         },
+        signal: AbortSignal.timeout(15_000),
         body: buildOpeningSsml(),
       });
 
@@ -168,15 +244,23 @@ const server = createServer(async (request, response) => {
         return;
       }
 
-      const promptResult = await maybePlayOpeningPrompt(body, readEnv());
+      const notification = await handleCallingNotification(body, readEnv());
+      callStateTracker.record(notification);
 
       sendJson(response, 202, {
         accepted: true,
         service: "repai-teams-call-mvp",
-        message: promptResult?.ok
+        callId: notification.callId,
+        state: notification.state,
+        action: notification.action,
+        message: notification.action === "played_opening"
           ? "Teams calling notification received. RepAI sent the opening prompt."
-          : "Teams calling notification received.",
-        ...(promptResult ? { promptResult } : {}),
+          : notification.action === "call_ended"
+            ? "Teams calling notification received. The call has ended."
+            : notification.action === "waiting_for_established"
+              ? "Teams calling notification received. Waiting for the call to be established."
+              : "Teams calling notification received.",
+        ...(notification.promptResult ? { promptResult: notification.promptResult } : {}),
       });
       return;
     }
@@ -201,9 +285,24 @@ const server = createServer(async (request, response) => {
 
       const env = readEnv();
       const text = body.text ?? "";
+      const conversationId = body.conversation?.id ?? "default";
       const wantsCall = text.toLowerCase().includes("start") && text.toLowerCase().includes("call");
-      const replyText = wantsCall ? await buildStartCallChatReply(env) : buildTeamsBotResponse(text);
-      const replyResult = await sendTeamsBotReply(body, replyText, env);
+
+      // Clear conversation memory when the user starts a new demo connection
+      if (text.toLowerCase().includes("use demo") || text.toLowerCase().includes("demo connection")) {
+        clearConversationHistory(conversationId);
+      }
+
+      // Get conversation history for Foundry context
+      const history = getConversationHistory(conversationId);
+      const replyPayload = wantsCall
+        ? { text: await buildStartCallChatReply(env) }
+        : await buildTeamsBotResponse(text, env, history, conversationId);
+
+      // Store the exchange in conversation memory
+      appendToConversationHistory(conversationId, text, replyPayload.text);
+
+      const replyResult = await sendTeamsBotReply(body, replyPayload.text, env, fetch, replyPayload.adaptiveCard);
 
       sendJson(response, replyResult.ok ? 202 : replyResult.status, {
         accepted: replyResult.ok,
@@ -251,7 +350,7 @@ const server = createServer(async (request, response) => {
 
     sendJson(response, 404, {
       error: "Not found",
-      routes: ["GET /health", "GET /repai-call-openapi.json", "GET /media/opening.wav", "POST /start-demo-call", "POST /api/calling", "POST /api/messages"],
+      routes: ["GET /health", "GET /api/status", "GET /api/status/deep", "GET /api/calls", "GET /repai-call-openapi.json", "GET /media/opening.wav", "POST /start-demo-call", "POST /api/calling", "POST /api/messages"],
     });
   } catch (error) {
     sendJson(response, 500, { error: error instanceof Error ? error.message : "Unknown server error" });
@@ -274,7 +373,17 @@ function buildOpeningSsml() {
   ].join("");
 }
 
-async function maybePlayOpeningPrompt(body: Record<string, unknown>, env: TeamsCallMvpEnv) {
+interface CallingNotificationResult {
+  callId?: string;
+  state?: string;
+  action: string;
+  promptResult?: import("../integrations/graphTeamsCall.js").GraphCallStartResult;
+}
+
+async function handleCallingNotification(
+  body: Record<string, unknown>,
+  env: TeamsCallMvpEnv,
+): Promise<CallingNotificationResult> {
   const values = Array.isArray(body.value) ? body.value : [];
   const baseUrl = (env.REPAI_PUBLIC_BASE_URL ?? "").replace(/\/$/, "");
 
@@ -289,12 +398,30 @@ async function maybePlayOpeningPrompt(body: Record<string, unknown>, env: TeamsC
     }
 
     const call = resourceData as { id?: unknown; state?: unknown; "@odata.type"?: unknown };
-    if (typeof call.id === "string" && call.state === "established") {
-      return playOpeningPrompt(call.id, env, `${baseUrl}/media/opening.wav`);
+    const callId = typeof call.id === "string" ? call.id : undefined;
+    const state = typeof call.state === "string" ? call.state : undefined;
+
+    console.log(`[RepAI Calling] Call ${callId ?? "unknown"} → state: ${state ?? "unknown"}`);
+
+    if (callId && state === "established") {
+      const promptResult = await playOpeningPrompt(callId, env, `${baseUrl}/media/opening.wav`);
+      return { callId, state, action: "played_opening", promptResult };
     }
+
+    if (state === "terminated") {
+      console.log(`[RepAI Calling] Call ${callId ?? "unknown"} has ended.`);
+      return { callId, state, action: "call_ended" };
+    }
+
+    if (state === "establishing") {
+      console.log(`[RepAI Calling] Call ${callId ?? "unknown"} is being established.`);
+      return { callId, state, action: "waiting_for_established" };
+    }
+
+    return { callId, state, action: "observed" };
   }
 
-  return undefined;
+  return { action: "no_call_data" };
 }
 
 async function buildStartCallChatReply(env: TeamsCallMvpEnv) {

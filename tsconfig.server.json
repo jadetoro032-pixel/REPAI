@@ -10,6 +10,10 @@
     "src/server/**/*.ts",
     "src/integrations/teamsCallMvp.ts",
     "src/integrations/graphTeamsCall.ts",
-    "src/integrations/teamsBotMessaging.ts"
+    "src/integrations/teamsBotMessaging.ts",
+    "src/integrations/foundryClient.ts",
+    "src/integrations/workIqAdapter.ts",
+    "src/domain/staffSupport.ts",
+    "src/domain/staffSupportWorkflow.ts"
   ]
 }

@@ -6,6 +6,8 @@ export interface TeamsCallMvpEnv {
   REPAI_DEMO_MEETING_URL?: string;
   REPAI_FOUNDRY_ENDPOINT?: string;
   REPAI_FOUNDRY_API_KEY?: string;
+  REPAI_FOUNDRY_DEPLOYMENT?: string;
+  REPAI_FOUNDRY_API_VERSION?: string;
   REPAI_SPEECH_KEY?: string;
   REPAI_SPEECH_REGION?: string;
 }

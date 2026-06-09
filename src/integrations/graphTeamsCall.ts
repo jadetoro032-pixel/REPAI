@@ -125,6 +125,7 @@ export async function createTeamsMeetingCall(
       authorization: `Bearer ${token.accessToken}`,
       "content-type": "application/json",
     },
+    signal: AbortSignal.timeout(15_000),
     body: JSON.stringify(payload),
   });
   const callBody = (await callResponse.json().catch(() => ({}))) as Record<string, unknown>;
@@ -168,6 +169,7 @@ export async function playOpeningPrompt(
       authorization: `Bearer ${token.accessToken}`,
       "content-type": "application/json",
     },
+    signal: AbortSignal.timeout(15_000),
     body: JSON.stringify({
       clientContext: `repai-opening-${Date.now()}`,
       prompts: [
@@ -207,6 +209,7 @@ async function getGraphAccessToken(env: TeamsCallMvpEnv, fetchImpl: FetchLike) {
     headers: {
       "content-type": "application/x-www-form-urlencoded",
     },
+    signal: AbortSignal.timeout(15_000),
     body: new URLSearchParams({
       client_id: env.REPAI_TEAMS_BOT_ID ?? "",
       client_secret: env.REPAI_TEAMS_BOT_PASSWORD ?? "",
