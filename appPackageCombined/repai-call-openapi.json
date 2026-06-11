@@ -2,7 +2,7 @@
   "openapi": "3.0.3",
   "info": {
     "title": "RepAI Call API",
-    "version": "0.3.0",
+    "version": "0.3.1",
     "description": "Starts the RepAI real Teams-call demo path."
   },
   "servers": [

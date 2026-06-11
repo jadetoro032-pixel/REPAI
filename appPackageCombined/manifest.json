@@ -1,13 +1,13 @@
 {
   "$schema": "https://developer.microsoft.com/json-schemas/teams/v1.23/MicrosoftTeams.schema.json",
   "manifestVersion": "1.23",
-  "version": "0.3.0",
+  "version": "0.3.1",
   "id": "6bb6f3b4-7118-4fd1-9017-b9bbbe0937f2",
   "developer": {
     "name": "Jeremiah Adetoro",
-    "websiteUrl": "https://contoso.example",
-    "privacyUrl": "https://contoso.example/privacy",
-    "termsOfUseUrl": "https://contoso.example/terms"
+    "websiteUrl": "https://repai-frhzehe2cpe2b2en.francecentral-01.azurewebsites.net",
+    "privacyUrl": "https://repai-frhzehe2cpe2b2en.francecentral-01.azurewebsites.net/health",
+    "termsOfUseUrl": "https://repai-frhzehe2cpe2b2en.francecentral-01.azurewebsites.net/health"
   },
   "name": {
     "short": "RepAI",
