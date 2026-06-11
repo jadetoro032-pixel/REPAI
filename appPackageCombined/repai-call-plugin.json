@@ -1,4 +1,5 @@
 {
+  "$schema": "https://developer.microsoft.com/json-schemas/copilot/plugin/v2.4/schema.json",
   "schema_version": "v2.4",
   "name_for_human": "RepAI Call",
   "namespace": "repai",
@@ -27,18 +28,11 @@
           }
         }
       },
-      "returns": {
-        "type": "string",
-        "description": "The real backend result, including join_started, join_failed, or setup_required."
-      },
       "capabilities": {
         "confirmation": {
           "type": "AdaptiveCard",
           "title": "Start RepAI Teams call?",
           "body": "RepAI will ask the configured backend to join the demo Teams meeting as Jeremiah's disclosed delegate."
-        },
-        "security_info": {
-          "data_handling": ["ResourceStateUpdate", "DataExport"]
         }
       }
     }
