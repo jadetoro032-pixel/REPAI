@@ -8,9 +8,10 @@ describe("RepAI combined package", () => {
 
     expect(manifest.name.short).toBe("RepAI");
     expect(manifest.developer.name).toBe("Jeremiah Adetoro");
-    expect(manifest.description.full).toContain("RepAI is built by Jeremiah Adetoro");
+    expect(manifest.description.full).toContain("enterprise knowledge assistant");
+    expect(manifest.description.full).toContain("Teams call prototype");
     expect(manifest.bots[0]).toMatchObject({
-      botId: "78e73fa6-8e61-416d-8419-1d6a536b4030",
+      botId: "67c572c9-4e4b-44dd-a106-3053abbac188",
       supportsCalling: true,
       supportsVideo: false,
     });

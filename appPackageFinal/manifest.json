@@ -1,0 +1,64 @@
+{
+  "$schema": "https://developer.microsoft.com/json-schemas/teams/v1.23/MicrosoftTeams.schema.json",
+  "manifestVersion": "1.23",
+  "version": "2.0.0",
+  "id": "67c572c9-4e4b-44dd-a106-3053abbac188",
+  "developer": {
+    "name": "Jeremiah Adetoro",
+    "websiteUrl": "https://repai-frhzehe2cpe2b2en.francecentral-01.azurewebsites.net",
+    "privacyUrl": "https://repai-frhzehe2cpe2b2en.francecentral-01.azurewebsites.net/health",
+    "termsOfUseUrl": "https://repai-frhzehe2cpe2b2en.francecentral-01.azurewebsites.net/health"
+  },
+  "name": {
+    "short": "RepAI",
+    "full": "RepAI - AI Enterprise Delegate"
+  },
+  "description": {
+    "short": "AI enterprise delegate for meetings and support workflows.",
+    "full": "RepAI is built for the Microsoft 365 Enterprise Agents hackathon. It acts as a disclosed AI delegate: joining Teams meetings, triaging support requests, recommending next-step actions, and maintaining an audit trail. RepAI uses synthetic enterprise data for the demo. In production it connects to Outlook, Teams, SharePoint, Azure Speech, and Azure AI Foundry."
+  },
+  "icons": {
+    "color": "color.png",
+    "outline": "outline.png"
+  },
+  "accentColor": "#1769D3",
+  "bots": [
+    {
+      "botId": "67c572c9-4e4b-44dd-a106-3053abbac188",
+      "scopes": ["personal", "team", "groupChat"],
+      "supportsCalling": true,
+      "supportsVideo": false,
+      "isNotificationOnly": false
+    }
+  ],
+  "copilotAgents": {
+    "declarativeAgents": [
+      {
+        "id": "repai-lite-meeting-delegate",
+        "file": "declarativeAgent.json"
+      }
+    ]
+  },
+  "validDomains": [
+    "token.botframework.com",
+    "repai-frhzehe2cpe2b2en.francecentral-01.azurewebsites.net"
+  ],
+  "webApplicationInfo": {
+    "id": "67c572c9-4e4b-44dd-a106-3053abbac188",
+    "resource": "https://repai-frhzehe2cpe2b2en.francecentral-01.azurewebsites.net"
+  },
+  "authorization": {
+    "permissions": {
+      "resourceSpecific": [
+        {
+          "name": "OnlineMeeting.ReadBasic.Chat",
+          "type": "Application"
+        },
+        {
+          "name": "TeamsActivity.Send.Chat",
+          "type": "Application"
+        }
+      ]
+    }
+  }
+}

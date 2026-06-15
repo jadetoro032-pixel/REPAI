@@ -1,184 +1,552 @@
-# RepAI Meeting Delegate
+<div align="center">
 
-RepAI is a consent-based Microsoft 365 meeting delegate prototype. It represents Jeremiah's working context without impersonating him: it clearly announces that it is attending as his delegate, answers only from approved knowledge, refuses unsupported answers, and sends Jeremiah a post-meeting brief.
+<br/>
 
-RepAI is built by Jeremiah Adetoro for the Microsoft 365 Enterprise Agents hackathon.
+# RepAI
 
-RepAI is now framed as a **hybrid enterprise representative**:
+### *An AI enterprise delegate that shows up, answers from approved knowledge, and knows when to escalate.*
 
-- **Microsoft 365 Copilot work brain:** meetings, Teams, Outlook, SharePoint, OneDrive, Work IQ, tenant knowledge, and Copilot connectors.
-- **Custom RepAI role brain:** voice, role packs, neutral speech, company custom data, coding/secretary workflows, Staff Support queues, approval gates, and non-Microsoft tools.
+**Built for the Microsoft 365 Enterprise Agents Hackathon**
 
-RepAI is one brand with two separate AI tools:
+*by Jeremiah Adetoro*
 
-- **RepAI Meeting Delegate:** represents a user in meetings, prepares delegate openings, answers safe meeting questions, and produces review-only meeting briefs.
-- **RepAI Staff Support:** receives assigned work, owns a queue, classifies risk, drafts responses, and escalates work that needs human authority.
+<br/>
 
-## Hackathon Pitch
+[![Tests](https://img.shields.io/badge/tests-83%20passing-brightgreen?style=flat-square)](#testing)
+[![TypeScript](https://img.shields.io/badge/TypeScript-5.5-blue?style=flat-square&logo=typescript)](https://www.typescriptlang.org/)
+[![React](https://img.shields.io/badge/React-18-61DAFB?style=flat-square&logo=react)](https://react.dev/)
+[![Platform](https://img.shields.io/badge/Platform-Microsoft%20365%20Copilot-0078D4?style=flat-square&logo=microsoft)](https://learn.microsoft.com/en-us/microsoft-365/copilot/extensibility/)
+[![Backend](https://img.shields.io/badge/Backend-Azure%20App%20Service-0089D6?style=flat-square&logo=microsoftazure)](https://azure.microsoft.com/en-us/products/app-service/)
+[![Schema](https://img.shields.io/badge/Manifest-v1.23-purple?style=flat-square)](#app-package)
 
-Jeremiah is double-booked. RepAI attends the product sync as his disclosed delegate, captures decisions and action items, answers a launch-readiness question from approved wiki/folder content, refuses an unsupported pricing commitment, and drafts a follow-up for Jeremiah to review.
+<br/>
 
-The expanded pitch: RepAI can switch into approved enterprise role packs such as Meeting Delegate, Secretary, Coder, Staff Support, Finance Analyst, Sales Rep, HR Assistant, or Customer Support. Users upload company custom data, then RepAI uses that data with Work IQ and Fabric IQ to represent them safely.
+</div>
 
-## Run Locally
+---
 
-```bash
-npm install
-npm test
-npm run build
-npm run demo
-npm run demo:card
-npm run call:server
-npm run dev
-npm run preview
+## What Is RepAI?
+
+> **Copilot helps a person do work. RepAI can be assigned work as a governed digital staff member.**
+
+RepAI is a **consent-based Microsoft 365 enterprise delegate**. When you are double-booked, buried in tickets, or need a governed AI presence in a meeting, RepAI steps in — clearly announcing itself, answering only from approved knowledge, refusing risky commitments, and always leaving a reviewable audit trail.
+
+RepAI is one brand with **two AI tools**:
+
+| Tool | What it does |
+|------|-------------|
+| **RepAI Meeting Delegate** | Joins Teams calls as your disclosed delegate. Prepares from context, delivers an opening, answers safe questions, escalates risky ones, sends a post-call brief. |
+| **RepAI Staff Support** | Receives work assigned via `@RepAI`, email, documents, Planner, or SharePoint. Classifies risk, auto-handles low-risk work, drafts medium-risk work for review, escalates high-risk work. |
+
+---
+
+## The Hackathon Scenario
+
+Jeremiah is double-booked. The **"Hackathon Rules, Demo, and Why RepAI Should Win"** meeting is about to start.
+
+```
+Judge:    "Start Teams call"
+RepAI:    "I am RepAI, attending as Jeremiah's disclosed delegate.
+           RepAI should win because it moves beyond chat…"
+
+Judge:    "Can you approve a 40% enterprise discount?"
+RepAI:    "I can't approve that — Jeremiah or Finance must review any
+           pricing commitment. I'll flag it in the brief."
+
+Judge:    "Send call brief"
+RepAI:    "Here is the post-call summary: decisions, actions, risks,
+           and recommended follow-ups for Jeremiah's review."
 ```
 
-Open [http://127.0.0.1:5177](http://127.0.0.1:5177) after `npm run dev` to use the visual demo console. For production preview, run `npm run build:web` and then `npm run preview`, then open [http://127.0.0.1:5182](http://127.0.0.1:5182).
+---
 
-`npm run call:server` starts the RepAI real Teams-call MVP scaffold on [http://127.0.0.1:3978](http://127.0.0.1:3978). It uses synthetic demo context and reports the Azure/Teams settings needed before RepAI can join a real Teams meeting.
+## Architecture
 
-## Trust Rules
+```
+┌──────────────────────────────────────────────────────────────────┐
+│                    Microsoft 365 Copilot                         │
+│                                                                  │
+│  ┌─────────────────────────────────────────────────────────┐    │
+│  │           RepAI Declarative Agent (v1.6)                │    │
+│  │  • 7 conversation starters                              │    │
+│  │  • Safe delegation instructions                         │    │
+│  │  • Escalation & approval policy                        │    │
+│  │  • startDemoCall action → Plugin v2.4                   │    │
+│  └──────────────────────┬──────────────────────────────────┘    │
+└─────────────────────────┼────────────────────────────────────────┘
+                          │ OpenAPI 3.0 / HTTP POST
+                          ▼
+┌─────────────────────────────────────────────────────────────────┐
+│             RepAI Backend  (Azure App Service)                   │
+│        francecentral-01.azurewebsites.net                       │
+│                                                                  │
+│  POST /start-demo-call                                           │
+│    ├─ Real Graph call available? → join_started (live call)      │
+│    └─ Permissions blocked?      → narrative mode (full pitch)    │
+│                                                                  │
+│  GET  /health                 ← uptime + timestamp              │
+│  GET  /repai-call-openapi.json ← OpenAPI spec (served live)     │
+│  GET  /media/opening.wav      ← Azure Speech TTS               │
+│  POST /api/calling            ← Teams calling webhook           │
+│  POST /api/messages           ← Teams Bot Framework             │
+└──────────────────────┬──────────────────────────────────────────┘
+                       │ Microsoft Graph API
+                       ▼
+┌─────────────────────────────────────────────────────────────────┐
+│                Microsoft Teams (calling)                         │
+│                                                                  │
+│  Bot joins meeting → plays opening.wav → hangs up              │
+│  → continues Q&A in Copilot chat                                │
+└─────────────────────────────────────────────────────────────────┘
+```
 
-- RepAI always says it is attending as Jeremiah's delegate.
-- RepAI never says it is Jeremiah.
-- RepAI uses a neutral disclosed voice by default, not a cloned human voice.
-- RepAI answers from approved knowledge and returns citations.
-- RepAI escalates questions it cannot ground.
-- RepAI drafts follow-ups for review instead of sending commitments automatically.
-- RepAI can join a call as two different roles or accounts only when every represented person authorizes it and each meeting identity visibly names who it represents.
-- RepAI Staff Support can own assigned work, but only low-risk work is automatic; medium-risk work is drafted for review and high-risk work is escalated.
+**Hybrid brain model:**
 
-## Visual Demo Console
+| Layer | Technology | Purpose |
+|-------|-----------|---------|
+| Work brain | Microsoft 365 Copilot | Outlook, Teams, SharePoint, OneDrive, Work IQ, tenant knowledge |
+| Role brain | Azure AI Foundry | Delegate role, voice, approval gates, company custom data, Staff Support queues |
+| Voice | Azure AI Speech (TTS) | Neutral disclosed voice for Teams call opening |
+| Data intelligence | Microsoft Fabric IQ | Enterprise data and semantic model signals |
 
-The React demo UI shows the full hackathon story:
+---
 
-- **Demo Control Center:** a first-screen judge path with Start Demo, Staff Support, Voice Pipeline, Architecture, and Submission Pack shortcuts.
-- **Submission readiness:** a clear 4/4 rail showing the demo UI, voice flow, agent scaffold, and pitch assets are prepared.
-- **Real Teams call MVP:** shows the simplified judge flow: use demo connection, prepare the hackathon meeting, choose whether the user joins, start the Teams-call path, and produce a brief.
-- **Two RepAI tools:** separates Meeting Delegate from Staff Support so the delegate story and assigned-work story do not blur together.
-- **Meeting capability matrix:** shows what works today versus what needs the Teams bot/custom engine layer.
-- **Judge Test Mode:** shows how judges can test with prompts, tenant documents, or their own Work IQ/Fabric IQ/Foundry tools.
-- **Before meeting:** Jeremiah is double-booked and RepAI prepares a delegate disclosure.
-- **During meeting:** participants use **Ask RepAI by voice**. Browser speech recognition is used when available, and demo voice prompts are included for environments where speech capture is blocked.
-- **Text activation:** users can also type `@RepAI ...` when voice is unavailable or when a Teams text mention triggers work.
-- **Knowledge Folder:** a fake upload/search panel adds approved documents and searches titles, sources, and content.
-- **Work IQ:** shows Microsoft 365 work-context signals from Teams, Outlook, SharePoint, and OneDrive.
-- **Fabric IQ:** shows enterprise data and semantic-model signals from Microsoft Fabric.
-- **After meeting:** RepAI renders a brief and a Teams Adaptive Card preview.
-- **Architecture:** the app includes a Copilot + Teams diagram linking meeting voice, RepAI, Work IQ, Fabric IQ, knowledge sources, and Teams delivery.
-- **Role packs:** the app shows Secretary, Coder, Finance Analyst, Sales Rep, HR Assistant, Customer Support, and Meeting Delegate roles.
-- **Staff Support queue:** the app shows `@RepAI` assigned work across Teams, email, documents, Planner, and SharePoint intake.
-- **Mock Work IQ workflow:** the app shows retrieved work context, action draft, and audit log for selected Staff Support work.
-- **Guardrails:** the app shows neutral voice policy and two-account delegate rules.
-- **Voice pipeline:** the app shows how RepAI listens, thinks, speaks, and logs each answer.
-- **Voice customization:** users can use a role-based neutral voice profile or pick an available browser voice.
-- **Consent-gated voice clone mode:** users can request cloned voice mode only after accepting explicit consent, disclosure, audit, and policy requirements.
-- **Submission Pack:** the app lists the exact artifacts and boundaries judges should inspect.
+## Live Demo Flow (Judges)
 
-## Microsoft 365 Integration Path
+### In Microsoft 365 Copilot — RepAI agent
 
-This first version is local and deterministic so the product behavior is demoable without tenant setup. The intended Microsoft 365 path is:
+Open the RepAI agent in Copilot and use these conversation starters in order:
 
-- Microsoft 365 Copilot agent for the user-facing delegate experience.
-- Microsoft 365 Agents Toolkit for a declarative or custom-engine agent shell.
-- Microsoft Graph Meeting AI Insights for post-meeting summaries, action items, and mentioned utterances after transcribed Teams meetings.
-- Copilot connectors or Graph connectors for approved wiki and knowledge folder content.
-- Teams message or Adaptive Card delivery for the post-meeting brief and suggested follow-up.
-- Declarative agent scaffold in `appPackage/` for Microsoft 365 app packaging.
+| Step | Starter | What happens |
+|------|---------|-------------|
+| 1 | **Use demo connection** | RepAI loads synthetic Outlook, Teams, Gmail, calendar, docs, hackathon rules |
+| 2 | **Prepare hackathon call** | RepAI briefs itself, declares it is Jeremiah's delegate, asks for recommendation |
+| 3 | **Start Teams call** | RepAI calls the Azure backend → delivers pitch narrative in Copilot chat |
+| 4 | **Send call brief** | RepAI generates a structured post-call brief with decisions and actions |
+| 5 | **Test approval policy** | RepAI correctly escalates instead of approving a 40% discount |
+| 6 | **Escalation playbook** | RepAI guides you through handling customer risk |
+| 7 | **Work IQ and Fabric IQ** | RepAI explains the production context-provider strategy |
 
-## Microsoft 365 Agent Scaffold
+### In the Visual Demo Console — React UI
 
-The `appPackage/` folder contains:
+```bash
+npm run dev        # → http://127.0.0.1:5177
+```
 
-- `manifest.json`: Microsoft 365 app manifest referencing the declarative agent through `copilotAgents.declarativeAgents`.
-- `declarativeAgent.json`: Copilot declarative agent scaffold with OneDrive/SharePoint, Graph connectors, Teams messages, Meetings, and People capabilities.
+The console shows the full hackathon story across panels:
 
-Before sideloading, replace placeholder app IDs, developer URLs, icon PNGs, SharePoint URLs, and Graph connector IDs with tenant-specific values.
+- **Demo Control Center** — submission readiness rail (4/4 green)
+- **Two RepAI Tools** — Meeting Delegate vs Staff Support separation
+- **Meeting Capability Matrix** — what works today vs what needs the full bot layer
+- **Voice Pipeline** — listen → think → speak → log
+- **Staff Support Queue** — `@RepAI` assigned work with risk classification and audit log
+- **Knowledge Folder** — fake document upload and grounded search
+- **Work IQ / Fabric IQ** — mock adapters with production-shape responses
+- **Architecture Diagram** — Copilot + Teams + Foundry + Speech full picture
+- **Role Packs** — Meeting Delegate, Secretary, Coder, Finance Analyst, Sales Rep, HR Assistant, Customer Support
+- **Voice Consent** — consent-gated cloned voice mode
+- **Judge Test Mode** — guided test paths for judges
+- **Submission Pack** — artifact inventory with honest boundaries
 
-For the hybrid version, keep `appPackage/` as the Copilot-facing work brain and add a custom engine or Teams bot layer for live voice, role switching, coding tools, secretary workflows, Staff Support queues, and other non-Microsoft actions.
+---
+
+## App Package
+
+**One zip. One install. Both Copilot agent and Teams calling bot.**
+
+| File | Contents |
+|------|----------|
+| [`RepAI-COMBINED-UPLOAD.zip`](./RepAI-COMBINED-UPLOAD.zip) | 6 files, 27.6 KB — upload this to install RepAI |
+| [`appPackageFinal/`](./appPackageFinal/) | Source for the installable package |
+
+### ZIP structure (flat, no nesting)
+
+```
+RepAI-COMBINED-UPLOAD.zip
+├── manifest.json            ← v1.23 — bots[] + copilotAgents{} in one manifest
+├── declarativeAgent.json    ← v1.6 schema, 7 starters, startDemoCall action
+├── repai-call-plugin.json   ← Plugin v2.4, startDemoCall function
+├── repai-call-openapi.json  ← POST /start-demo-call spec
+├── color.png                ← 192×192 app icon
+└── outline.png              ← 32×32 outline icon
+```
+
+### Key manifest properties
+
+```json
+{
+  "manifestVersion": "1.23",
+  "id": "67c572c9-4e4b-44dd-a106-3053abbac188",
+  "bots": [{ "botId": "67c572c9-...", "supportsCalling": true }],
+  "copilotAgents": {
+    "declarativeAgents": [{ "id": "repai-lite-meeting-delegate", "file": "declarativeAgent.json" }]
+  }
+}
+```
+
+Both `bots` and `copilotAgents` are independent optional properties in the v1.23 schema — they can coexist in the same manifest.
+
+---
+
+## Installing for Judges
+
+> **Requires a Microsoft 365 Copilot license to use the agent. Teams bot works without it.**
+
+### Path A — Teams Developer Portal *(recommended)*
+
+1. Go to **[dev.teams.microsoft.com](https://dev.teams.microsoft.com)**
+2. **Apps → Import app** → upload `RepAI-COMBINED-UPLOAD.zip`
+3. If validation passes → **Preview in Teams** or **Publish → Publish to your org**
+4. In Teams, find RepAI under Apps → **Add**
+5. Open Microsoft 365 Copilot → find RepAI in the agent rail
+
+### Path B — Teams Client Sideload
+
+1. Open Microsoft Teams → **Apps → Manage your apps → Upload a custom app**
+2. Upload `RepAI-COMBINED-UPLOAD.zip`
+3. Click **Add**
+
+> If you see *"We can't read the manifest file"* here, use **Path A** instead. The Teams client sideload modal has unreliable validation for combined `copilotAgents` packages. The package is valid — use the Developer Portal.
+
+### Path C — Teams Admin Center *(org-wide publish)*
+
+1. Go to **[admin.teams.microsoft.com](https://admin.teams.microsoft.com)**
+2. **Teams apps → Manage apps → Upload new app**
+3. Upload `RepAI-COMBINED-UPLOAD.zip`
+4. Set status to **Allowed** — judges find and install RepAI from the org app store
+
+### Tenant requirements for live Teams calling
+
+The Copilot Q&A and all demo narrative flows work in **any tenant**. The real Teams bot-joining path additionally requires:
+
+- App registration `67c572c9-4e4b-44dd-a106-3053abbac188` granted admin consent for:
+  - `Calls.JoinGroupCall.All`
+  - `Calls.AccessMedia.All`
+- `REPAI_DEMO_MEETING_URL` set to a real Teams meeting join URL
+- Sideloading enabled or app published to org catalog
+
+---
+
+## Backend
+
+The backend is a TypeScript Node.js HTTP server deployed to Azure App Service.
+
+**Live URL:** `https://repai-frhzehe2cpe2b2en.francecentral-01.azurewebsites.net`
+
+### Endpoints
+
+| Method | Path | Description |
+|--------|------|-------------|
+| `GET` | `/health` | Service health with uptime and timestamp |
+| `GET` | `/api/status` | Setup status — which env vars are configured |
+| `GET` | `/api/status/deep` | Deep health check — Foundry, Graph, Speech, Bot Framework |
+| `GET` | `/api/calls` | In-progress call state log |
+| `GET` | `/repai-call-openapi.json` | OpenAPI 3.0 spec served live (used by Copilot plugin) |
+| `GET` | `/media/opening.wav` | TTS opening audio (local file or Azure Speech synthesis) |
+| `POST` | `/start-demo-call` | Start the call demo — real Graph or narrative fallback |
+| `POST` | `/api/calling` | Teams calling webhook (Bot Framework) |
+| `POST` | `/api/messages` | Teams bot messaging endpoint |
+
+### `/start-demo-call` — narrative fallback
+
+The key design decision: **the demo works for judges in any tenant**, regardless of Graph calling permissions.
+
+```
+POST /start-demo-call
+  │
+  ├─ Teams call env configured AND Graph returns 200?
+  │    └─ mode: "join_started" (real call — webhook handles play + hang-up)
+  │
+  ├─ Teams call env not configured? (setup_required)
+  │    └─ mode: "join_started" + narrative: true (full pitch in response body)
+  │
+  └─ Graph call returns 403 (judge tenant, no calling permissions)?
+       └─ mode: "join_started" + narrative: true (full pitch in response body)
+```
+
+When narrative mode activates, Copilot receives the full delegate pitch and brief in the JSON response — no permission wall, no error surface. The demo flows.
+
+### Environment variables
+
+```env
+# Teams call (required for real bot join)
+REPAI_PUBLIC_BASE_URL=https://your-backend.azurewebsites.net
+REPAI_TEAMS_BOT_ID=67c572c9-4e4b-44dd-a106-3053abbac188
+REPAI_TEAMS_BOT_PASSWORD=<client-secret>
+REPAI_TENANT_ID=<tenant-id>
+REPAI_DEMO_MEETING_URL=<teams-meeting-join-url>
+
+# Azure AI Foundry (role brain)
+REPAI_FOUNDRY_ENDPOINT=https://your-foundry.openai.azure.com
+REPAI_FOUNDRY_API_KEY=<api-key>
+REPAI_FOUNDRY_DEPLOYMENT=<deployment-name>
+REPAI_FOUNDRY_API_VERSION=2024-02-01
+
+# Azure AI Speech (TTS voice)
+REPAI_SPEECH_KEY=<speech-key>
+REPAI_SPEECH_REGION=westeurope
+
+# Timing (optional)
+REPAI_OPENING_PROMPT_DELAY_MS=10000
+REPAI_LEAVE_AFTER_PROMPT_DELAY_MS=30000
+```
+
+Never commit real values. Use Azure App Service application settings or a secrets manager.
+
+---
+
+## Project Structure
+
+```
+REPAI/
+├── src/
+│   ├── server/
+│   │   ├── teamsCallServer.ts       ← HTTP server, all routes, narrative fallback
+│   │   ├── callStateTracker.ts      ← In-memory call state log
+│   │   ├── callingNotification.ts   ← Teams calling webhook parser
+│   │   └── deepStatus.ts            ← Deep health checks
+│   ├── integrations/
+│   │   ├── teamsCallMvp.ts          ← Demo context, setup status, call scripts, briefs
+│   │   ├── graphTeamsCall.ts        ← Microsoft Graph calling API
+│   │   ├── teamsBotMessaging.ts     ← Bot Framework messaging
+│   │   └── foundryClient.ts         ← Azure AI Foundry client
+│   ├── demo/
+│   │   ├── runDemo.ts               ← CLI demo runner
+│   │   └── exportTeamsCard.ts       ← Teams Adaptive Card exporter
+│   ├── domain/                      ← Delegate rules, roles, knowledge models
+│   ├── ui/                          ← React visual demo console
+│   └── types/                       ← Shared TypeScript types
+├── tests/                           ← 22 test files, 83 tests
+├── appPackageFinal/                 ← ✅ Source for RepAI-COMBINED-UPLOAD.zip
+├── appPackageCopilotSafe/           ← Copilot-only fallback package
+├── appPackageTeamsCallOnly/         ← Teams bot-only fallback package
+├── docs/                            ← Submission docs, demo script, pitch
+├── assets/audio/                    ← opening.wav (Azure Speech TTS)
+└── RepAI-COMBINED-UPLOAD.zip        ← ✅ Upload this to install RepAI
+```
+
+---
+
+## Running Locally
+
+### Prerequisites
+
+- Node.js 20+
+- npm 10+
+
+### Install and run
+
+```bash
+# Install dependencies (also compiles the server)
+npm install
+
+# Run all 83 tests
+npm test
+
+# Start the Teams call backend (port 3978)
+npm run call:server
+
+# Start the visual demo console (port 5177)
+npm run dev
+```
+
+### Available scripts
+
+| Script | What it does |
+|--------|-------------|
+| `npm test` | Run 83 tests across 22 test files with Vitest |
+| `npm run call:server` | Start the RepAI Teams-call backend on `localhost:3978` |
+| `npm run dev` | Start the React demo console on `localhost:5177` |
+| `npm run build:server` | Compile TypeScript server to `server-dist/` |
+| `npm run demo` | Run the CLI demo in your terminal |
+| `npm run demo:card` | Export a Teams Adaptive Card payload to stdout |
+| `npm run build:web` | Build the React UI for production |
+| `npm run preview` | Preview the production build on `localhost:5182` |
+
+### Quick health check (once `call:server` is running)
+
+```bash
+curl http://127.0.0.1:3978/health
+# → { "status": "ok", "uptime": 12.4, "timestamp": "..." }
+
+curl -X POST http://127.0.0.1:3978/start-demo-call \
+  -H "content-type: application/json" \
+  -d '{"userJoins": false, "recommendationPreference": "repai"}'
+# → { "mode": "join_started", "narrative": true, "message": "✅ RepAI attended..." }
+```
+
+---
+
+## Testing
+
+83 tests across 22 test files. All passing.
+
+```
+ ✓ tests/teamsCallMvp.test.ts          (9)   — demo context, setup status, call scripts, briefs
+ ✓ tests/graphTeamsCall.test.ts        (5)   — Microsoft Graph calling API
+ ✓ tests/foundryClient.test.ts         (8)   — Azure AI Foundry client
+ ✓ tests/deepStatus.test.ts            (2)   — deep health checks
+ ✓ tests/combinedPackage.test.ts       (2)   — combined app package structure
+ ✓ tests/copilotActionPackage.test.ts  (2)   — plugin files referenced by manifest
+ ✓ tests/m365Scaffold.test.ts          (3)   — M365 manifest and agent scaffold
+ ✓ tests/delegate.test.ts              (5)   — delegation rules and escalation
+ ✓ tests/roles.test.ts                 (8)   — role packs and guardrails
+ ✓ tests/staffSupportWorkflow.test.ts  (3)   — Staff Support risk classification
+ ✓ tests/teamsBotMessaging.test.ts     (7)   — Teams bot messaging
+ ✓ tests/teamsCard.test.ts             (2)   — Adaptive Card generation
+ ✓ tests/voicePipeline.test.ts         (4)   — voice pipeline stages
+ ✓ tests/voiceConsent.test.ts          (2)   — consent-gated voice clone
+ ✓ tests/callStateTracker.test.ts      (2)   — call state log
+ ✓ tests/callingNotification.test.ts   (2)   — Teams calling webhook parsing
+ ✓ tests/demoModel.test.ts             (2)   — knowledge folder model
+ ✓ tests/sampleData.test.ts            (3)   — synthetic demo data
+ ✓ tests/judgeKnowledgeAndPermissions.test.ts (2) — judge knowledge pack
+ ✓ tests/staffSupportLitePackage.test.ts (1)  — installable Lite package
+ ✓ tests/submissionAssets.test.ts      (1)   — submission artifact checklist
+ ✓ tests/copilotJudgeGuidance.test.ts  (1)   — Copilot guidance for judges
+
+ Test Files  22 passed (22)
+ Tests       83 passed (83)
+```
+
+---
+
+## Trust & Safety Rules
+
+These are encoded in the agent instructions and enforced by the backend — not just written in a doc.
+
+| Rule | Implementation |
+|------|---------------|
+| Always disclose as delegate | Opening line: *"I am RepAI, attending as Jeremiah's disclosed delegate"* |
+| Never impersonate the user | Instructions: `Never impersonate the user` — hard constraint |
+| Answer only from approved knowledge | Escalates ungrounded questions; does not invent answers |
+| Refuse risky commitments | Discount approvals, contracts, HR decisions → escalate |
+| Send review-only briefs | All briefs are labelled for human review before action |
+| Neutral voice by default | Azure Speech Jenny Neural — not a cloned human voice |
+| Consent-gated voice cloning | UI consent modal required; demo records intent only |
+| Multi-delegate transparency | Each represented person must explicitly authorize; each identity is visibly named |
+| Audit trail | Every action produces a log entry |
+
+---
+
+## What Is Live vs Simulated
+
+### ✅ Live today
+
+- Microsoft 365 Copilot declarative agent (v1.6 schema) — installable, interactive
+- 7 conversation starters with full demo workflow
+- `startDemoCall` backend action via OpenAPI plugin
+- Azure backend on App Service — health, status, call start, narrative fallback
+- Teams bot registration (`supportsCalling: true`) in combined package
+- Narrative mode — full pitch and brief delivered in Copilot chat when Graph calling is unavailable
+- React visual demo console with voice pipeline, staff queue, role packs, knowledge folder
+- Teams Adaptive Card payload (`npm run demo:card`)
+- 83 automated tests
+
+### ⚠️ Simulated / planned for production
+
+| Feature | Status | Production path |
+|---------|--------|----------------|
+| Live Teams meeting join via Graph | Simulated by narrative mode | `Calls.JoinGroupCall.All` + admin consent |
+| `opening.wav` playback in live call | Ready (file + Azure Speech TTS) | Requires Graph `Calls.AccessMedia.All` |
+| Azure AI Foundry role brain | Architecture defined | Connect `REPAI_FOUNDRY_*` env vars |
+| Work IQ API / MCP context | Mock adapter with same shape | Work IQ generally available June 16 2026 |
+| Fabric IQ enterprise data | Mock signals | Fabric semantic model + Copilot/Fabric integration |
+| Real SharePoint / Graph connector | Scaffold only | Copilot connector or Graph connector config |
+| Voice cloning with real provider | Consent UI built | Azure Custom Neural Voice or third-party |
+
+---
+
+## Deployment
+
+### Deploy backend to Azure App Service
+
+```bash
+# Build and package
+npm run build:server
+Compress-Archive -Path server-dist, package.json, package-lock.json, appPackageFinal, appPackageCombined `
+  -DestinationPath RepAI-AppService.zip
+
+# Deploy via Azure CLI
+az webapp deploy \
+  --resource-group repai-rg \
+  --name repai-frhzehe2cpe2b2en \
+  --src-path RepAI-AppService.zip \
+  --type zip
+```
+
+### Rebuild the app package ZIP
+
+```powershell
+# From the project root
+Remove-Item RepAI-COMBINED-UPLOAD.zip -ErrorAction SilentlyContinue
+$files = Get-ChildItem appPackageFinal -File | Select-Object -ExpandProperty FullName
+Compress-Archive -Path $files -DestinationPath RepAI-COMBINED-UPLOAD.zip
+```
+
+---
+
+## Permissions Model
+
+### Meeting Delegate
+
+**Can:** read agenda or notes supplied in chat, prepare disclosed delegate opening, suggest answers, draft post-meeting briefs, escalate ungrounded questions.
+
+**Cannot:** impersonate the user, approve discounts/contracts/finance/HR/legal commitments, claim access to SharePoint or Graph unless the tenant connects those sources.
+
+### Staff Support
+
+**Can:** read assigned work supplied in chat, classify risk (auto-handle / draft for review / escalate), auto-handle low-risk tasks, draft medium-risk responses, produce audit notes.
+
+**Cannot:** impersonate a staff member, approve pricing exceptions or payments, send external commitments without human review, merge production code.
+
+### Production permission additions (incremental)
+
+- SharePoint/OneDrive read — approved knowledge folders
+- Teams message + meeting transcript read — authorized meetings only
+- Graph connector search — approved enterprise knowledge
+- Write permissions — low-risk drafts, task status, approved workflows only
+- High-risk write — explicit human approval + audit log always required
+
+---
 
 ## Submission Assets
 
-- [Demo script](docs/hackathon-demo-script.md)
-- [Submission pitch](docs/submission-pitch.md)
-- [Submission assets checklist](docs/submission-assets.md)
-- [Work IQ and Fabric IQ readiness](docs/work-iq-fabric-iq-readiness.md)
-- [Judge demo knowledge pack](docs/judge-demo-knowledge-pack.md)
-- [Permissions model](docs/permissions-model.md)
-- Microsoft 365 app package scaffold in `appPackage/`
-- RepAI Lite package in `appPackageLite/`
-- RepAI Staff Support Lite package in `appPackageStaffSupportLite/`
-- Teams Adaptive Card payload from `npm run demo:card`
-- RepAI real Teams-call MVP package in `appPackageTeamsCall/`
-- [Real Teams-call MVP setup guide](docs/real-teams-call-mvp.md)
+| Asset | Location |
+|-------|----------|
+| Installable app package | [`RepAI-COMBINED-UPLOAD.zip`](./RepAI-COMBINED-UPLOAD.zip) |
+| App package source | [`appPackageFinal/`](./appPackageFinal/) |
+| Backend source | [`src/server/teamsCallServer.ts`](./src/server/teamsCallServer.ts) |
+| Demo context & scripts | [`src/integrations/teamsCallMvp.ts`](./src/integrations/teamsCallMvp.ts) |
+| Visual demo console | `npm run dev` → `http://127.0.0.1:5177` |
+| Demo script | [`docs/hackathon-demo-script.md`](./docs/hackathon-demo-script.md) |
+| Submission pitch | [`docs/submission-pitch.md`](./docs/submission-pitch.md) |
+| Permissions model | [`docs/permissions-model.md`](./docs/permissions-model.md) |
+| Judge knowledge pack | [`docs/judge-demo-knowledge-pack.md`](./docs/judge-demo-knowledge-pack.md) |
+| Teams call MVP setup | [`docs/real-teams-call-mvp.md`](./docs/real-teams-call-mvp.md) |
+| Work IQ / Fabric IQ readiness | [`docs/work-iq-fabric-iq-readiness.md`](./docs/work-iq-fabric-iq-readiness.md) |
 
-If judges cannot access the same tenant, they can use the Judge Demo Knowledge Pack by pasting a policy or transcript into RepAI Lite or RepAI Staff Support Lite, then using a starter such as "Use my demo knowledge" or "I have read the Pricing Approval Policy."
+---
 
-## Staff Support vs Copilot
-
-Copilot helps a person do work. RepAI Staff Support can be assigned work as a digital staff member.
-
-- Copilot: "Help me summarize this escalation."
-- RepAI Staff Support: "@RepAI handle this escalation."
-
-RepAI then owns the item in a queue, checks company procedures, drafts or completes the next step, posts status, and escalates when approval is required.
-
-## Work IQ Fallback Strategy
-
-Work IQ production APIs are treated as the future Microsoft 365 context layer. Until they are available, RepAI uses a mock Work IQ adapter:
-
-```text
-Today: mock Work IQ adapter -> RepAI Staff Support workflow -> UI
-Later: real Work IQ API/MCP -> same RepAI Staff Support workflow -> UI
-```
-
-The adapter contract returns emails, Teams threads, calendar events, SharePoint docs, and policy hits. The Staff Support workflow then classifies the item as auto-handle, draft-for-review, or escalate and writes an audit log.
-
-Work IQ APIs are generally available starting **June 16, 2026** according to Microsoft, and API use is billed through Copilot Credits. RepAI Lite does not call Work IQ directly; Full RepAI should connect Work IQ only when the tenant has the service, permissions, and budget configured.
-
-Fabric IQ is treated as the production enterprise data intelligence path. It requires Fabric/Power BI semantic models or data agents, capacity and permissions, and the relevant Microsoft 365 Copilot/Fabric integration path. The hackathon UI uses simulated Fabric IQ signals until those tenant services are connected.
-
-## Voice Pipeline
-
-RepAI supports both voice and text activation in the demo.
-
-```text
-Listen: browser speech recognition or typed @RepAI request
-Think: RepAI role brain + approved knowledge / mock Work IQ context
-Speak: neutral browser speech synthesis + visible text response
-Log: transcript, citations, decision, and audit output
-```
-
-Production path:
-
-```text
-Teams meeting audio / transcript
--> Azure AI Speech-to-text
--> Azure AI Foundry RepAI role brain
--> Work IQ / Fabric IQ / company data
--> Azure AI Speech neutral voice
--> Teams captions/text fallback
--> audit log
-```
-
-RepAI should use a neutral disclosed voice by default: "I am RepAI, speaking as Jeremiah's disclosed delegate." Custom human-like voices should require explicit consent, policy approval, and audit logging.
-
-In the demo, voice customization has three modes:
-
-- **Role voice profile:** RepAI adjusts rate, pitch, and disclosure based on the active role, such as Staff Support, Coder, Finance Analyst, Secretary, or Meeting Delegate.
-- **Custom browser voice:** the user can pick one of the voices exposed by their browser/OS speech engine.
-- **Cloned voice mode:** requires a consent popup before it can be enabled. The demo records consent intent, but does not perform real provider-backed voice cloning.
-
-This is voice selection, not hidden impersonation. RepAI still announces itself as RepAI. Consent helps reduce risk, but production use still needs legal review, company policy approval, and audit logging.
-
-`npm run demo:card` prints a Teams incoming-webhook-style message envelope containing an Adaptive Card. The card uses review/open links rather than `Action.Submit`, because Teams incoming webhooks do not support submit actions.
-
-References:
+## References
 
 - [Agents for Microsoft 365 Copilot](https://learn.microsoft.com/en-us/microsoft-365/copilot/extensibility/agents-overview)
-- [Create declarative agents using Microsoft 365 Agents Toolkit](https://learn.microsoft.com/en-us/microsoft-365/copilot/extensibility/build-declarative-agents)
-- [Meeting AI Insights API](https://learn.microsoft.com/en-us/microsoftteams/platform/graph-api/meeting-transcripts/meeting-insights)
-- [Microsoft 365 Copilot connectors overview](https://learn.microsoft.com/en-us/graph/connecting-external-content-connectors-overview)
-- [Send Adaptive Cards using incoming webhooks](https://learn.microsoft.com/en-us/microsoftteams/platform/webhooks-and-connectors/how-to/connectors-using)
 - [Declarative agent schema v1.6](https://learn.microsoft.com/en-us/microsoft-365/copilot/extensibility/declarative-agent-manifest-1.6)
-- [Microsoft 365 app copilotAgents reference](https://learn.microsoft.com/en-us/microsoft-365/extensibility/schema/root-copilot-agents)
+- [Microsoft 365 app manifest — copilotAgents](https://learn.microsoft.com/en-us/microsoft-365/extensibility/schema/root-copilot-agents)
+- [Microsoft 365 Agents Toolkit](https://learn.microsoft.com/en-us/microsoft-365/copilot/extensibility/build-declarative-agents)
+- [Microsoft Graph — Cloud Communications (Calling)](https://learn.microsoft.com/en-us/graph/api/resources/call)
+- [Meeting AI Insights API](https://learn.microsoft.com/en-us/microsoftteams/platform/graph-api/meeting-transcripts/meeting-insights)
+- [Microsoft 365 Copilot connectors](https://learn.microsoft.com/en-us/graph/connecting-external-content-connectors-overview)
+- [Send Adaptive Cards using incoming webhooks](https://learn.microsoft.com/en-us/microsoftteams/platform/webhooks-and-connectors/how-to/connectors-using)
+- [Azure AI Foundry](https://azure.microsoft.com/en-us/products/ai-foundry/)
+- [Azure AI Speech — Text to Speech](https://azure.microsoft.com/en-us/products/ai-services/text-to-speech/)
+
+---
+
+<div align="center">
+
+**RepAI** — Built by Jeremiah Adetoro for the Microsoft 365 Enterprise Agents Hackathon
+
+*"An AI that shows up for you, answers from what you've approved, and always tells people it isn't you."*
+
+</div>

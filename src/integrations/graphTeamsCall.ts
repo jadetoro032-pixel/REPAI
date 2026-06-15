@@ -203,6 +203,46 @@ export async function playOpeningPrompt(
   };
 }
 
+export async function hangUpCall(
+  callId: string,
+  env: TeamsCallMvpEnv,
+  fetchImpl: FetchLike = fetch,
+): Promise<GraphCallStartResult> {
+  const token = await getGraphAccessToken(env, fetchImpl);
+
+  if (!token.ok) {
+    return {
+      ok: false,
+      status: token.status,
+      message: token.message,
+    };
+  }
+
+  const response = await fetchImpl(`https://graph.microsoft.com/v1.0/communications/calls/${callId}`, {
+    method: "DELETE",
+    headers: {
+      authorization: `Bearer ${token.accessToken}`,
+    },
+    signal: AbortSignal.timeout(15_000),
+  });
+  const body = (await response.json().catch(() => ({}))) as Record<string, unknown>;
+
+  if (!response.ok) {
+    return {
+      ok: false,
+      status: response.status,
+      message: extractGraphMessage(body, "Microsoft Graph refused the hang-up request."),
+    };
+  }
+
+  return {
+    ok: true,
+    status: response.status,
+    callId,
+    message: "RepAI left the Teams call after the opening.",
+  };
+}
+
 async function getGraphAccessToken(env: TeamsCallMvpEnv, fetchImpl: FetchLike) {
   const tokenResponse = await fetchImpl(`https://login.microsoftonline.com/${env.REPAI_TENANT_ID}/oauth2/v2.0/token`, {
     method: "POST",

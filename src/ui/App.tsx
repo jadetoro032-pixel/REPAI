@@ -86,8 +86,8 @@ const demoFlow = [
 const controlCenterActions = [
   {
     href: "#real-teams-call",
-    title: "Start call",
-    body: "Use demo connection, then prepare the real Teams-call MVP.",
+    title: "Call prototype",
+    body: "Show the Teams-call path as a prototype, not the main proof.",
     icon: <PhoneCall size={18} />,
   },
   {
@@ -99,7 +99,7 @@ const controlCenterActions = [
   {
     href: "#meeting-capabilities",
     title: "Call readiness",
-    body: "Show what joins, listens, speaks, and decides today.",
+    body: "Show what works today and what remains future integration.",
     icon: <CalendarClock size={18} />,
   },
   {
@@ -129,7 +129,7 @@ const readinessItems = [
 ];
 
 const submissionAssets = [
-  "React judge console with split Meeting Delegate and Staff Support tools",
+  "React judge console with enterprise knowledge assistant, Meeting Delegate, and Staff Support tools",
   "RepAI Lite and RepAI Staff Support Lite Copilot packages",
   "Teams Adaptive Card payload from npm run demo:card",
   "3-minute pitch script, readiness docs, and submission checklist",
@@ -139,9 +139,9 @@ const submissionAssets = [
 const repAiTools = [
   {
     name: "RepAI Meeting Delegate",
-    status: "Live shell + demo voice",
+    status: "Demo shell + prototype call path",
     purpose: "Represents Jeremiah in meetings, answers safe questions, captures notes, and sends review-only briefs.",
-    boundary: "Cannot autonomously join or speak in a Teams call until the Teams bot/custom engine layer is connected.",
+    boundary: "Reliable today through text and browser voice demo; live Teams call joining remains a prototype path.",
   },
   {
     name: "RepAI Staff Support",
@@ -499,7 +499,7 @@ export function App() {
           <div className="brand-mark">R</div>
           <div>
             <strong>RepAI</strong>
-            <span>Meeting delegate</span>
+            <span>Knowledge assistant</span>
           </div>
         </div>
         <nav className="phase-list" aria-label="Meeting lifecycle">
@@ -547,7 +547,7 @@ export function App() {
         <header className="topbar">
           <div>
             <p className="label">Enterprise Launch Product Sync</p>
-            <h1>RepAI attending as Jeremiah's delegate</h1>
+            <h1>RepAI answering from approved enterprise knowledge</h1>
           </div>
           <div className="topbar-actions">
             <span className="status-pill">
@@ -568,9 +568,9 @@ export function App() {
             <div>
               <div className="icon-title">
                 <PhoneCall size={21} />
-                <h2>Real Teams call MVP</h2>
+              <h2>Teams call prototype</h2>
               </div>
-              <p>Demo connection uses synthetic data. The call surface is designed for a real Teams meeting once Azure Bot, Graph calling permissions, and the public HTTPS endpoint are configured.</p>
+              <p>The reliable demo is text and browser-voice Q&amp;A over approved knowledge. This call surface shows the Teams meeting path being tested once Azure Bot, Graph calling permissions, and the public HTTPS endpoint are stable.</p>
             </div>
             <span className={`status-pill ${callResult.mode === "ready" ? "strong" : ""}`}>
               {callResult.mode === "ready" ? "Teams ready" : "Setup needed"}

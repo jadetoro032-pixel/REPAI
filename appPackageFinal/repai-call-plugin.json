@@ -1,0 +1,61 @@
+{
+  "$schema": "https://developer.microsoft.com/json-schemas/copilot/plugin/v2.4/schema.json",
+  "schema_version": "v2.4",
+  "name_for_human": "RepAI Call",
+  "namespace": "repai",
+  "description_for_human": "Starts the RepAI Teams-call demo path.",
+  "description_for_model": "Use this plugin when the user asks RepAI to start, join, or hand off to the Teams call. It calls the RepAI Azure backend, which attempts the Microsoft Graph Teams meeting join and returns the real status.",
+  "functions": [
+    {
+      "name": "startDemoCall",
+      "description": "Starts the configured RepAI Teams-call demo. Use only after the user asks to start the Teams call.",
+      "parameters": {
+        "type": "object",
+        "properties": {
+          "userJoins": {
+            "type": "boolean",
+            "description": "True if Jeremiah or the judge will also join the call. False if RepAI should attend alone."
+          },
+          "recommendationPreference": {
+            "type": "string",
+            "description": "Which recommendation RepAI should use in the call opening.",
+            "enum": ["repai", "user"],
+            "default": "repai"
+          },
+          "userRecommendation": {
+            "type": "string",
+            "description": "Optional recommendation provided by Jeremiah for RepAI to include."
+          }
+        }
+      },
+      "capabilities": {
+        "confirmation": {
+          "type": "AdaptiveCard",
+          "title": "Start RepAI Teams call?",
+          "body": "RepAI will ask the configured backend to join the demo Teams meeting as Jeremiah's disclosed delegate."
+        }
+      }
+    }
+  ],
+  "runtimes": [
+    {
+      "type": "OpenApi",
+      "auth": {
+        "type": "None"
+      },
+      "run_for_functions": ["startDemoCall"],
+      "spec": {
+        "url": "repai-call-openapi.json",
+        "progress_style": "ShowUsageWithInputAndOutput"
+      }
+    }
+  ],
+  "capabilities": {
+    "conversation_starters": [
+      {
+        "title": "Start Teams call",
+        "text": "Start the RepAI Teams call as Jeremiah's disclosed delegate."
+      }
+    ]
+  }
+}

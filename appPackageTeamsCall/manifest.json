@@ -1,8 +1,8 @@
 {
   "$schema": "https://developer.microsoft.com/json-schemas/teams/v1.23/MicrosoftTeams.schema.json",
   "manifestVersion": "1.23",
-  "version": "0.1.4",
-  "id": "a4f6328f-7ec6-4a8f-aa23-8c371f4d8748",
+  "version": "1.0.1",
+  "id": "cd6c403a-8bac-423e-8fc6-a7d497a2072c",
   "developer": {
     "name": "Jeremiah Adetoro",
     "websiteUrl": "https://repai-frhzehe2cpe2b2en.francecentral-01.azurewebsites.net",
@@ -10,12 +10,12 @@
     "termsOfUseUrl": "https://repai-frhzehe2cpe2b2en.francecentral-01.azurewebsites.net/health"
   },
   "name": {
-    "short": "RepAI Call",
-    "full": "RepAI Real Teams Call MVP"
+    "short": "RepAI Call Lab",
+    "full": "RepAI Teams Call Prototype"
   },
   "description": {
-    "short": "A Teams calling bot shell for the RepAI demo call.",
-    "full": "RepAI Call is the real Teams-call surface for the hackathon MVP. It uses synthetic demo context, then joins a Teams call as RepAI, Jeremiah's disclosed delegate, once Azure Bot, Graph calling permissions, and the public webhook endpoint are configured."
+    "short": "A Teams calling prototype for the RepAI meeting assistant path.",
+    "full": "RepAI Call Lab is the Teams call prototype surface for RepAI. The reliable hackathon demo is the enterprise knowledge assistant and Staff Support flow; this package keeps the configured calling bot identity visible for continued testing once Azure Bot, Graph calling permissions, and the public webhook endpoint are stable."
   },
   "icons": {
     "color": "color.png",
@@ -24,7 +24,7 @@
   "accentColor": "#1769D3",
   "bots": [
     {
-      "botId": "78e73fa6-8e61-416d-8419-1d6a536b4030",
+      "botId": "67c572c9-4e4b-44dd-a106-3053abbac188",
       "scopes": ["personal", "team", "groupChat"],
       "supportsCalling": true,
       "supportsVideo": false,
@@ -33,6 +33,7 @@
   ],
   "validDomains": [
     "token.botframework.com",
+    "repai-media.westeurope.cloudapp.azure.com",
     "repai-frhzehe2cpe2b2en.francecentral-01.azurewebsites.net"
   ]
 }

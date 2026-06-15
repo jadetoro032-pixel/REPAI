@@ -56,10 +56,11 @@ describe("RepAI real Teams call MVP scaffold", () => {
   it("declares a Teams calling bot package", () => {
     const manifest = JSON.parse(readFileSync("appPackageTeamsCall/manifest.json", "utf8"));
 
-    expect(manifest.bots[0].botId).toBe("78e73fa6-8e61-416d-8419-1d6a536b4030");
+    expect(manifest.bots[0].botId).toBe("67c572c9-4e4b-44dd-a106-3053abbac188");
     expect(manifest.bots[0].supportsCalling).toBe(true);
     expect(manifest.bots[0].supportsVideo).toBe(false);
-    expect(manifest.description.full).toContain("real Teams-call surface");
+    expect(manifest.description.full).toContain("Teams call prototype");
+    expect(manifest.description.full).toContain("reliable hackathon demo");
     expect(teamsCallRequirements.map((requirement) => requirement.key)).toContain("REPAI_FOUNDRY_ENDPOINT");
   });
 

@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest";
 import {
   buildJoinMeetingCallPayload,
   createTeamsMeetingCall,
+  hangUpCall,
   parseTeamsMeetingLink,
   playOpeningPrompt,
 } from "../src/integrations/graphTeamsCall.js";
@@ -111,6 +112,37 @@ describe("Graph Teams meeting call integration", () => {
       true,
     );
     expect(calls.at(-1)?.body).toContain("https://repai.example/media/opening.wav");
+    expect(JSON.stringify(result)).not.toContain("secret-value");
+  });
+
+  it("hangs up after the RepAI opening prompt", async () => {
+    const calls: Array<{ url: string; method?: string }> = [];
+    const fakeFetch = async (input: string | URL | Request, init?: RequestInit) => {
+      const url = input.toString();
+      calls.push({ url, method: init?.method });
+
+      if (url.includes("/oauth2/v2.0/token")) {
+        return new Response(JSON.stringify({ access_token: "token" }), { status: 200 });
+      }
+
+      return new Response(null, { status: 204 });
+    };
+
+    const result = await hangUpCall(
+      "call-id",
+      {
+        REPAI_TEAMS_BOT_ID: "bot-id",
+        REPAI_TEAMS_BOT_PASSWORD: "secret-value",
+        REPAI_TENANT_ID: "tenant-id",
+      },
+      fakeFetch,
+    );
+
+    expect(result.ok).toBe(true);
+    expect(calls).toContainEqual({
+      url: "https://graph.microsoft.com/v1.0/communications/calls/call-id",
+      method: "DELETE",
+    });
     expect(JSON.stringify(result)).not.toContain("secret-value");
   });
 });

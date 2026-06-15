@@ -10,6 +10,8 @@ export interface TeamsCallMvpEnv {
   REPAI_FOUNDRY_API_VERSION?: string;
   REPAI_SPEECH_KEY?: string;
   REPAI_SPEECH_REGION?: string;
+  REPAI_OPENING_PROMPT_DELAY_MS?: string;
+  REPAI_LEAVE_AFTER_PROMPT_DELAY_MS?: string;
 }
 
 export interface DemoConnectionContext {

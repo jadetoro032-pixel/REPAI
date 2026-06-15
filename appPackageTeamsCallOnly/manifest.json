@@ -1,0 +1,43 @@
+{
+  "$schema": "https://developer.microsoft.com/json-schemas/teams/v1.17/MicrosoftTeams.schema.json",
+  "manifestVersion": "1.17",
+  "version": "1.0.0",
+  "id": "be4947f4-22f7-4811-8595-7c2393d66dbe",
+  "developer": {
+    "name": "Jeremiah Adetoro",
+    "websiteUrl": "https://repai-frhzehe2cpe2b2en.francecentral-01.azurewebsites.net",
+    "privacyUrl": "https://repai-frhzehe2cpe2b2en.francecentral-01.azurewebsites.net/health",
+    "termsOfUseUrl": "https://repai-frhzehe2cpe2b2en.francecentral-01.azurewebsites.net/health"
+  },
+  "name": {
+    "short": "RepAI Call",
+    "full": "RepAI Teams Call"
+  },
+  "description": {
+    "short": "A Teams calling bot for the RepAI demo.",
+    "full": "RepAI Call is the Teams calling surface for the RepAI demo. It uses a configured Azure Bot identity so RepAI can be tested as a disclosed meeting delegate."
+  },
+  "icons": {
+    "color": "color.png",
+    "outline": "outline.png"
+  },
+  "accentColor": "#1769D3",
+  "bots": [
+    {
+      "botId": "67c572c9-4e4b-44dd-a106-3053abbac188",
+      "scopes": [
+        "personal",
+        "team",
+        "groupChat"
+      ],
+      "supportsCalling": true,
+      "supportsVideo": false,
+      "isNotificationOnly": false
+    }
+  ],
+  "validDomains": [
+    "token.botframework.com",
+    "repai-frhzehe2cpe2b2en.francecentral-01.azurewebsites.net",
+    "repai-media.westeurope.cloudapp.azure.com"
+  ]
+}
