@@ -501,7 +501,15 @@ Compress-Archive -Path $files -DestinationPath RepAI-COMBINED-UPLOAD.zip
 
 **Cannot:** impersonate a staff member, approve pricing exceptions or payments, send external commitments without human review, merge production code.
 
-### Production permission additions (incremental)
+
+
+## HOW GITHUB HELPED
+RepAI was developed with help from GitHub Copilot in VS Code. Copilot helped speed up the TypeScript implementation, test creation, README refinement, demo scripting, and feature iteration.
+I also used Copilot while experimenting with a VM-based setup for an agent that could speak and listen in a live environment. That part did not fully succeed, but Copilot still helped me explore the approach, write unfamiliar low-level/assembly-style code, understand what was missing, and learn from the attempt.
+Overall, Copilot acted like a development partner throughout the project: helping build and test the app, recommending improvements, refining the product direction, and adding features faster than I could have done alone.
+
+
+##Production permission additions (incremental)
 
 - SharePoint/OneDrive read — approved knowledge folders
 - Teams message + meeting transcript read — authorized meetings only
