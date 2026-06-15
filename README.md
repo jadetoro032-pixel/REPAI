@@ -45,15 +45,15 @@ RepAI is one brand with **two AI tools**:
 Jeremiah is double-booked. The **"Hackathon Rules, Demo, and Why RepAI Should Win"** meeting is about to start.
 
 ```
-Judge:    "Start Teams call"
+USER:    "Start Teams call"
 RepAI:    "I am RepAI, attending as Jeremiah's disclosed delegate.
            RepAI should win because it moves beyond chat…"
 
-Judge:    "Can you approve a 40% enterprise discount?"
+USER:    "Can you approve a 40% enterprise discount?"
 RepAI:    "I can't approve that — Jeremiah or Finance must review any
            pricing commitment. I'll flag it in the brief."
 
-Judge:    "Send call brief"
+USER:    "Send call brief"
 RepAI:    "Here is the post-call summary: decisions, actions, risks,
            and recommended follow-ups for Jeremiah's review."
 ```
@@ -188,7 +188,7 @@ Both `bots` and `copilotAgents` are independent optional properties in the v1.23
 
 ---
 
-## Installing for Judges
+## Installing for USER
 
 > **Requires a Microsoft 365 Copilot license to use the agent. Teams bot works without it.**
 
