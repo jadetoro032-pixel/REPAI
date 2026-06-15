@@ -23,7 +23,7 @@
 
 </div>
 
-YOUTUBE DEMO VIDEO: 
+YOUTUBE DEMO VIDEO: https://youtu.be/Rm6mp_Kg7_E
 ---
 
 ## What Is RepAI?
