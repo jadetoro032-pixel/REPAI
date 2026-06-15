@@ -29,7 +29,7 @@
 
 > **Copilot helps a person do work. RepAI can be assigned work as a governed digital staff member.**
 
-RepAI is a **consent-based Microsoft 365 enterprise delegate**. When you are double-booked, buried in tickets, or need a governed AI presence in a meeting, RepAI steps in — clearly announcing itself, answering only from approved knowledge, refusing risky commitments, and always leaving a reviewable audit trail.
+RepAI is a **consent-based Microsoft 365 enterprise delegate**. When you are double-booked, buried in tickets, or need a governed AI presence in a meeting, RepAI steps in, clearly announcing itself, answering only from approved knowledge, refusing risky commitments, and always leaving a reviewable audit trail.
 
 RepAI is one brand with **two AI tools**:
 
@@ -213,7 +213,7 @@ Both `bots` and `copilotAgents` are independent optional properties in the v1.23
 1. Go to **[admin.teams.microsoft.com](https://admin.teams.microsoft.com)**
 2. **Teams apps → Manage apps → Upload new app**
 3. Upload `RepAI-COMBINED-UPLOAD.zip`
-4. Set status to **Allowed** — judges find and install RepAI from the org app store
+4. Set status to **Allowed** — users find and install RepAI from the org app store
 
 ### Tenant requirements for live Teams calling
 
